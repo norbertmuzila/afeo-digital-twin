@@ -23,65 +23,25 @@
     <div class="particle-field" id="particles"></div>
   </div>
 
-  <div class="login-card">
-    <div class="login-hero">
-      <div class="brand-logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-        </div>
-        <div class="brand-text">
-          <h1>AfEO Model</h1>
-          <span>Digital Twin Platform</span>
-        </div>
-      </div>
-      <p>Earth Observation platform unifying smart agriculture, water resource management, and food security intelligence into a single global Digital Twin.</p>
-      <div class="feature-list">
-        <div class="feature-item">
-          <div class="fi-icon g">🌾</div>
-          <div class="fi-text"><strong>Smart Agriculture</strong>Precision farming with NDVI, soil moisture & crop health analytics</div>
-        </div>
-        <div class="feature-item">
-          <div class="fi-icon b">💧</div>
-          <div class="fi-text"><strong>Water Resources</strong>Reservoir monitoring, rainfall analysis & drought early warning</div>
-        </div>
-        <div class="feature-item">
-          <div class="fi-icon a">🛡️</div>
-          <div class="fi-text"><strong>Food Security</strong>IPC classification, famine risk & humanitarian response planning</div>
-        </div>
-        <div class="feature-item">
-          <div class="fi-icon c">🛰️</div>
-          <div class="fi-text"><strong>Satellite Intelligence</strong>Sentinel-2, Landsat-9, MODIS, GRACE-FO multi-source fusion</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="login-form-side">
-      <h2>Welcome Back</h2>
-      <p class="sub">Sign in to access the AfEO Digital Twin workspace</p>
+    <div class="login-card-simple">
+      <h2 class="emhare-title">WELCOME TO AFEO MODEL</h2>
       <div class="login-error" id="loginError">Invalid username or password</div>
-      <div class="fg">
+      
+      <div class="fg-simple">
         <label>Username</label>
-        <div class="input-icon-wrap"><span class="iico">👤</span><input type="text" id="inUser" placeholder="Enter username" value="admin"></div>
+        <input type="text" id="inUser" placeholder="R204737E" value="admin">
       </div>
-      <div class="fg">
+      
+      <div class="fg-simple">
         <label>Password</label>
-        <div class="input-icon-wrap"><span class="iico">🔒</span><input type="password" id="inPass" placeholder="Enter password" value="admin123"></div>
+        <input type="password" id="inPass" placeholder="Enter your password" value="admin123">
       </div>
-      <div class="fg">
-        <label>Login As</label>
-        <select id="inRole">
-          <option value="admin">System Administrator</option>
-          <option value="farmer">Farmer / Extension Worker</option>
-          <option value="government">Government / Policy Maker</option>
-          <option value="researcher">Researcher / Analyst</option>
-        </select>
+      
+      <button class="btn-emhare" id="btnLogin">LOGIN</button>
+      
+      <div class="login-nb">
+        <strong>NB:</strong> Forgot Password? <a href="#">Reset password</a>
       </div>
-      <div class="remember-forgot">
-        <label><input type="checkbox" checked> Remember me</label>
-        <a href="#">Forgot password?</a>
-      </div>
-      <button class="btn-primary" id="btnLogin">Sign In to AfEO Model</button>
-      <div class="login-alt">New user? <a href="#" id="btnRegLink">Request Access</a></div>
     </div>
   </div>
 </div>
