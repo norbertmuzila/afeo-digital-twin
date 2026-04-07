@@ -347,37 +347,72 @@ function initMapOnce() {
   map = L.map('worldMap', { zoomControl: false }).setView([20, 0], 2);
   L.control.zoom({ position: 'topright' }).addTo(map);
   
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  const baseMapUrl = currentTheme === 'light' 
-    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
-    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    
-  tileLayer = L.tileLayer(baseMapUrl, {
-    attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
-  }).addTo(map);
+  // Base Layers
+  const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' });
+  const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' });
+  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
 
-  // Standard Push Pins
-  mapPins.forEach(co => {
-    const marker = L.marker(co.loc).addTo(map);
-    
-    // Popup
-    const fc = {'Phase 1':'var(--accent-green)','Phase 2':'var(--accent-amber)','Phase 3':'var(--accent-red)','Phase 4':'#d73027'};
-    const ndviCol = co.ndvi>=0.6?'var(--accent-green)':co.ndvi>=0.4?'var(--accent-amber)':'var(--accent-red)';
-    const waterCol = co.water>=60?'var(--accent-blue)':co.water>=35?'var(--accent-amber)':'var(--accent-red)';
-    const foodCol = fc[co.food]||'inherit';
-    
-    const popupContent = `
-      <div style="font-family: 'Outfit'; width: 220px; padding: 5px;">
-        <h3 style="font-size: 15px; font-weight: 650; margin: 0 0 10px 0; color: var(--text-primary);">${co.name}</h3>
-        <div style="font-size: 12px; margin-bottom: 5px; color: var(--text-secondary);"><strong>Pop:</strong> ${co.pop}</div>
-        <div style="font-size: 12px; margin-bottom: 5px; color: ${ndviCol};"><strong>NDVI:</strong> ${co.ndvi}</div>
-        <div style="font-size: 12px; margin-bottom: 5px; color: ${waterCol};"><strong>Water:</strong> ${co.water}%</div>
-        <div style="font-size: 12px; font-weight: 700; color: ${foodCol};"><strong>Food:</strong> ${co.food}</div>
-      </div>
-    `;
-    marker.bindPopup(popupContent);
-    marker.on('click', () => showCountryDetail(co));
-  });
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  tileLayer = currentTheme === 'light' ? cartoLight : cartoDark;
+  tileLayer.addTo(map);
+
+  const baseMaps = {
+    "EMHARE Light": cartoLight,
+    "EMHARE Dark": cartoDark,
+    "Satellite Live": esriSat
+  };
+  L.control.layers(baseMaps).addTo(map);
+
+  // Fetch GeoJSON for Choropleth mapping
+  fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+    .then(res => res.json())
+    .then(data => {
+      let geoJsonLayer;
+
+      function getColor(name) {
+        const co = mapPins.find(p => p.name === name || p.id.toUpperCase() === name); // Failsafe
+        if(!co) return '#d1d5db'; 
+        if(co.ndvi >= 0.6) return '#003366'; // Navy
+        if(co.ndvi >= 0.5) return '#22c55e'; // Green
+        if(co.ndvi >= 0.4) return '#eab308'; // Amber
+        if(co.ndvi >= 0.2) return '#f59d1f'; // Orange
+        return '#ef4444'; // Red
+      }
+
+      function style(feature) {
+        return {
+          fillColor: getColor(feature.properties.name),
+          weight: 0.8,
+          opacity: 1,
+          color: '#ffffff',
+          fillOpacity: 0.85
+        };
+      }
+
+      function highlightFeature(e) {
+        var layer = e.target;
+        layer.setStyle({ weight: 2, color: '#f59d1f', fillOpacity: 1 });
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { layer.bringToFront(); }
+      }
+
+      function resetHighlight(e) { geoJsonLayer.resetStyle(e.target); }
+      function onMapClick(e) { 
+        const co = mapPins.find(p => p.name === e.target.feature.properties.name);
+        if(co) showCountryDetail(co); 
+      }
+
+      function onEachFeature(feature, layer) {
+        layer.on({ mouseover: highlightFeature, mouseout: resetHighlight, click: onMapClick });
+        const co = mapPins.find(p => p.name === feature.properties.name);
+        let tipHtml = `<div style="font-family: inherit; font-size: 13px;"><strong>${feature.properties.name}</strong>`;
+        if(co) tipHtml += `<br>NDVI Score: ${co.ndvi}<br>Water Risk: ${co.water}%</div>`;
+        else tipHtml += `<br><span style="color:#666">No EO Data Available</span></div>`;
+        layer.bindTooltip(tipHtml, { direction: 'auto', sticky: true });
+      }
+
+      geoJsonLayer = L.geoJSON(data, { style: style, onEachFeature: onEachFeature }).addTo(map);
+    })
+    .catch(err => console.error("GeoJSON error: ", err));
 
   // Filters setup
   document.getElementById('mapChips').innerHTML = ['NDVI','Soil Moisture','Rainfall','Food Security','Water Bodies'].map((l,i) => `<div class="chip${i===0?' on':''}" onclick="this.classList.toggle('on')">${l}</div>`).join('');
