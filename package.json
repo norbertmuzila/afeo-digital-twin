@@ -1,0 +1,13 @@
+{
+  "name": "terravue-digital-twin",
+  "version": "1.0.0",
+  "description": "Digital Twin Platform for Earth Observation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2"
+  }
+}

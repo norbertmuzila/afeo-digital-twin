@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "severity": "critical",
+    "title": "Severe Drought — Horn of Africa",
+    "desc": "Rainfall deficit exceeding 60% across Somalia, Ethiopia. Estimated 4.2M affected.",
+    "source": "Sentinel-3 OLCI"
+  },
+  {
+    "id": 2,
+    "severity": "warning",
+    "title": "Crop Stress Detected — Punjab, India",
+    "desc": "NDVI anomaly -0.18 in wheat belt. Possible water stress in 320k hectares.",
+    "source": "Landsat-9"
+  },
+  {
+    "id": 3,
+    "severity": "warning",
+    "title": "Reservoir Low — Lake Kariba, Zambia",
+    "desc": "Water level at 34% capacity. Down 12% from seasonal average.",
+    "source": "GRACE-FO"
+  },
+  {
+    "id": 4,
+    "severity": "info",
+    "title": "Planting Season Advisory — West Africa",
+    "desc": "Optimal planting window opens in 14 days. Soil moisture conditions favorable.",
+    "source": "SMAP"
+  }
+]
