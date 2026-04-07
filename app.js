@@ -6,77 +6,7 @@ const API = '/api';
 let authToken = null;
 let currentUser = null;
 
-// ─── LOGIN PARTICLES ───
-(function initParticles() {
-  const pf = document.getElementById('particles');
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random() * 100 + '%';
-    p.style.top = (100 + Math.random() * 20) + '%';
-    p.style.animationDuration = (8 + Math.random() * 12) + 's';
-    p.style.animationDelay = Math.random() * 10 + 's';
-    p.style.width = p.style.height = (1.5 + Math.random() * 2.5) + 'px';
-    const hue = [210, 150, 190][Math.floor(Math.random() * 3)];
-    p.style.background = `hsla(${hue}, 80%, 60%, ${0.15 + Math.random() * 0.25})`;
-    pf.appendChild(p);
-  }
-})();
-
-// ─── GLOBE CANVAS ───
-(function initGlobe() {
-  const canvas = document.getElementById('globeCanvas');
-  const ctx = canvas.getContext('2d');
-  let w, h;
-  function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-  resize(); window.addEventListener('resize', resize);
-
-  const pts = [];
-  for (let i = 0; i < 120; i++) {
-    const angle = Math.random() * Math.PI * 2;
-    const r = 160 + Math.random() * 120;
-    pts.push({ a: angle, r, speed: 0.0005 + Math.random() * 0.001, size: 0.8 + Math.random() * 1.5, alpha: 0.1 + Math.random() * 0.3 });
-  }
-
-  function draw() {
-    ctx.clearRect(0, 0, w, h);
-    const cx = w / 2, cy = h / 2;
-
-    // Faint globe outline
-    ctx.beginPath();
-    ctx.arc(cx, cy, 180, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(59,130,246,0.06)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Latitude lines
-    for (let i = -2; i <= 2; i++) {
-      const ry = 180 * Math.cos(i * 0.4);
-      const oy = 180 * Math.sin(i * 0.4);
-      ctx.beginPath();
-      ctx.ellipse(cx, cy + oy, ry, 20, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(59,130,246,0.03)';
-      ctx.stroke();
-    }
-
-    // Points
-    pts.forEach(p => {
-      p.a += p.speed;
-      const x = cx + Math.cos(p.a) * p.r;
-      const y = cy + Math.sin(p.a) * p.r * 0.5;
-      const behind = Math.sin(p.a) < 0;
-      ctx.beginPath();
-      ctx.arc(x, y, p.size, 0, Math.PI * 2);
-      ctx.fillStyle = behind
-        ? `rgba(59,130,246,${p.alpha * 0.3})`
-        : `rgba(59,130,246,${p.alpha})`;
-      ctx.fill();
-    });
-
-    requestAnimationFrame(draw);
-  }
-  draw();
-})();
+// (Login particles and globe canvas removed for clean EMHARE theme)
 
 // ─── AUTH ───
 document.getElementById('btnLogin').addEventListener('click', doLogin);
