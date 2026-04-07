@@ -37,10 +37,25 @@
         <input type="password" id="inPass" placeholder="Enter your password" value="admin123">
       </div>
       
+      <div class="fg-simple fg-flex">
+        <label>Login As</label>
+        <select id="inRole" class="emhare-select">
+          <option value="admin">System Administrator</option>
+          <option value="farmer">Farmer / Extension Worker</option>
+          <option value="government">Government / Policy Maker</option>
+          <option value="researcher">Researcher / Analyst</option>
+        </select>
+      </div>
+
+      <div class="remember-emhare">
+        <label><input type="checkbox" checked> Remember me</label>
+      </div>
+      
       <button class="btn-emhare" id="btnLogin">LOGIN</button>
       
       <div class="login-nb">
-        <strong>NB:</strong> Forgot Password? <a href="#">Reset password</a>
+        <strong>NB:</strong> Forgot Password? <a href="#">Reset password</a><br>
+        <span style="font-weight: normal; margin-top: 8px; display: inline-block;">New user? <a href="#">Request Access</a></span>
       </div>
     </div>
   </div>

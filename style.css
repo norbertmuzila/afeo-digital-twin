@@ -112,6 +112,33 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .fg-simple input::placeholder {
   color: #aaaaaa;
 }
+.emhare-select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #333333;
+  outline: none;
+  background: #ffffff;
+}
+.remember-emhare {
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: #333333;
+}
+.remember-emhare label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.remember-emhare input[type="checkbox"] {
+  accent-color: #003366;
+  width: 15px;
+  height: 15px;
+}
 
 .btn-emhare {
   width: 100%;
