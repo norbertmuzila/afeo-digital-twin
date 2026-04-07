@@ -131,7 +131,25 @@ function doLogout() {
   setTimeout(() => { document.getElementById('loginScreen').classList.remove('out'); }, 400);
 }
 
-// ─── NAV ───
+// ─── NAV & THEME ───
+const themeToggleBtn = document.getElementById('themeToggle');
+if(themeToggleBtn) {
+  themeToggleBtn.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    if (currentTheme === 'light') {
+      document.documentElement.removeAttribute('data-theme');
+      themeToggleBtn.textContent = '🌙';
+      if(map) map.removeLayer(tileLayer);
+      if(map) tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(map);
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      themeToggleBtn.textContent = '☀️';
+      if(map) map.removeLayer(tileLayer);
+      if(map) tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(map);
+    }
+  });
+}
+
 const titleMap = {
   'dashboard':'Dashboard', 'world-map':'World Map — Digital Twin', 'precision-farming':'Precision Farming',
   'crop-monitoring':'Crop Monitoring', 'soil-analysis':'Soil Analysis', 'water-resources':'Water Resources',
@@ -343,106 +361,99 @@ async function loadFood() {
   document.getElementById('foodTable').innerHTML = `<div class="panel-hdr"><h3>🛡️ Food Security Classification</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Country</th><th>Phase</th><th>Pop.</th><th>Driver</th><th>Harvest</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table>`;
 }
 
-// ─── MAP ───
-const mapCountries = [
-  {id:'us',name:'United States',d:'M 85 130 L 175 125 L 190 145 L 185 165 L 160 180 L 120 175 L 80 165 Z',ndvi:0.68,water:72,food:'Phase 1',c:'#91cf60',pop:'331M'},
-  {id:'ca',name:'Canada',d:'M 75 60 L 200 55 L 210 100 L 195 125 L 85 130 L 60 105 Z',ndvi:0.55,water:88,food:'Phase 1',c:'#1a9850',pop:'38M'},
-  {id:'mx',name:'Mexico',d:'M 80 175 L 130 180 L 140 205 L 115 220 L 85 210 L 70 195 Z',ndvi:0.52,water:48,food:'Phase 2',c:'#d9ef8b',pop:'128M'},
-  {id:'br',name:'Brazil',d:'M 195 250 L 255 235 L 275 280 L 260 340 L 220 355 L 195 310 Z',ndvi:0.78,water:82,food:'Phase 1',c:'#1a9850',pop:'214M'},
-  {id:'ar',name:'Argentina',d:'M 185 340 L 220 355 L 215 420 L 195 440 L 175 410 L 170 360 Z',ndvi:0.61,water:65,food:'Phase 1',c:'#91cf60',pop:'45M'},
-  {id:'co',name:'Colombia',d:'M 155 225 L 185 220 L 195 250 L 175 265 L 155 255 Z',ndvi:0.82,water:78,food:'Phase 1',c:'#1a9850',pop:'51M'},
-  {id:'pe',name:'Peru',d:'M 145 260 L 175 265 L 180 310 L 165 325 L 140 300 Z',ndvi:0.45,water:55,food:'Phase 2',c:'#fee08b',pop:'33M'},
-  {id:'uk',name:'United Kingdom',d:'M 360 100 L 375 95 L 378 115 L 365 120 Z',ndvi:0.62,water:75,food:'Phase 1',c:'#91cf60',pop:'67M'},
-  {id:'fr',name:'France',d:'M 365 125 L 395 118 L 400 148 L 380 155 L 360 145 Z',ndvi:0.66,water:70,food:'Phase 1',c:'#91cf60',pop:'68M'},
-  {id:'de',name:'Germany',d:'M 395 105 L 420 100 L 425 128 L 400 135 L 395 118 Z',ndvi:0.64,water:72,food:'Phase 1',c:'#91cf60',pop:'84M'},
-  {id:'it',name:'Italy',d:'M 400 135 L 415 132 L 425 165 L 410 170 L 400 155 Z',ndvi:0.58,water:58,food:'Phase 1',c:'#d9ef8b',pop:'60M'},
-  {id:'es',name:'Spain',d:'M 345 148 L 385 140 L 390 165 L 350 170 Z',ndvi:0.48,water:42,food:'Phase 1',c:'#fee08b',pop:'47M'},
-  {id:'ua',name:'Ukraine',d:'M 448 97 L 500 95 L 505 118 L 455 122 Z',ndvi:0.59,water:55,food:'Phase 2',c:'#d9ef8b',pop:'44M'},
-  {id:'ru',name:'Russia',d:'M 450 30 L 760 15 L 770 95 L 500 95 L 455 60 Z',ndvi:0.42,water:86,food:'Phase 1',c:'#d9ef8b',pop:'145M'},
-  {id:'eg',name:'Egypt',d:'M 430 175 L 460 170 L 465 200 L 435 205 Z',ndvi:0.15,water:22,food:'Phase 2',c:'#fc8d59',pop:'104M'},
-  {id:'ng',name:'Nigeria',d:'M 380 240 L 405 235 L 410 265 L 385 270 Z',ndvi:0.62,water:52,food:'Phase 3',c:'#fee08b',pop:'218M'},
-  {id:'et',name:'Ethiopia',d:'M 465 240 L 495 235 L 500 265 L 470 270 Z',ndvi:0.38,water:28,food:'Phase 4',c:'#d73027',pop:'120M'},
-  {id:'ke',name:'Kenya',d:'M 475 270 L 498 268 L 502 295 L 478 298 Z',ndvi:0.42,water:35,food:'Phase 3',c:'#fc8d59',pop:'55M'},
-  {id:'za',name:'South Africa',d:'M 420 360 L 465 355 L 470 395 L 425 400 Z',ndvi:0.51,water:44,food:'Phase 2',c:'#d9ef8b',pop:'60M'},
-  {id:'sd',name:'Sudan',d:'M 440 210 L 475 205 L 480 240 L 445 245 Z',ndvi:0.22,water:18,food:'Phase 4',c:'#d73027',pop:'44M'},
-  {id:'so',name:'Somalia',d:'M 500 245 L 520 240 L 525 280 L 505 285 Z',ndvi:0.18,water:12,food:'Phase 4',c:'#d73027',pop:'17M'},
-  {id:'cd',name:'DR Congo',d:'M 410 270 L 450 265 L 455 310 L 415 315 Z',ndvi:0.76,water:72,food:'Phase 3',c:'#91cf60',pop:'99M'},
-  {id:'tz',name:'Tanzania',d:'M 460 295 L 490 290 L 495 325 L 465 330 Z',ndvi:0.58,water:48,food:'Phase 2',c:'#d9ef8b',pop:'63M'},
-  {id:'zw',name:'Zimbabwe',d:'M 440 340 L 465 335 L 468 360 L 443 365 Z',ndvi:0.41,water:32,food:'Phase 2',c:'#fee08b',pop:'15M'},
-  {id:'mg',name:'Madagascar',d:'M 500 330 L 520 325 L 525 370 L 505 375 Z',ndvi:0.55,water:45,food:'Phase 2',c:'#d9ef8b',pop:'28M'},
-  {id:'sa',name:'Saudi Arabia',d:'M 475 185 L 520 180 L 525 220 L 480 225 Z',ndvi:0.08,water:15,food:'Phase 1',c:'#fc8d59',pop:'35M'},
-  {id:'in',name:'India',d:'M 555 185 L 600 180 L 610 240 L 585 260 L 555 240 Z',ndvi:0.56,water:42,food:'Phase 2',c:'#d9ef8b',pop:'1.4B'},
-  {id:'cn',name:'China',d:'M 600 110 L 700 100 L 715 170 L 640 185 L 600 160 Z',ndvi:0.62,water:58,food:'Phase 1',c:'#91cf60',pop:'1.4B'},
-  {id:'pk',name:'Pakistan',d:'M 545 165 L 570 160 L 575 195 L 550 200 Z',ndvi:0.42,water:35,food:'Phase 2',c:'#fee08b',pop:'225M'},
-  {id:'bd',name:'Bangladesh',d:'M 600 200 L 618 195 L 622 215 L 604 220 Z',ndvi:0.72,water:78,food:'Phase 2',c:'#91cf60',pop:'170M'},
-  {id:'th',name:'Thailand',d:'M 640 210 L 658 205 L 662 245 L 644 250 Z',ndvi:0.74,water:68,food:'Phase 1',c:'#91cf60',pop:'72M'},
-  {id:'vn',name:'Vietnam',d:'M 660 205 L 675 200 L 680 250 L 665 255 Z',ndvi:0.71,water:72,food:'Phase 1',c:'#91cf60',pop:'98M'},
-  {id:'id',name:'Indonesia',d:'M 645 280 L 730 275 L 735 305 L 650 310 Z',ndvi:0.80,water:82,food:'Phase 1',c:'#1a9850',pop:'275M'},
-  {id:'jp',name:'Japan',d:'M 730 125 L 745 120 L 750 160 L 735 165 Z',ndvi:0.68,water:78,food:'Phase 1',c:'#91cf60',pop:'125M'},
-  {id:'af',name:'Afghanistan',d:'M 530 150 L 555 145 L 560 170 L 535 175 Z',ndvi:0.20,water:20,food:'Phase 3',c:'#fc8d59',pop:'40M'},
-  {id:'au',name:'Australia',d:'M 660 330 L 760 320 L 770 395 L 665 405 Z',ndvi:0.35,water:38,food:'Phase 1',c:'#fee08b',pop:'26M'},
-  {id:'nz',name:'New Zealand',d:'M 790 385 L 805 380 L 810 415 L 795 420 Z',ndvi:0.72,water:85,food:'Phase 1',c:'#91cf60',pop:'5M'},
+// ─── MAP (LEAFLET LAYER) ───
+const mapPins = [
+  {id:'us',name:'United States',loc:[37.09,-95.71],ndvi:0.68,water:72,food:'Phase 1',pop:'331M'},
+  {id:'ca',name:'Canada',loc:[56.13,-106.34],ndvi:0.55,water:88,food:'Phase 1',pop:'38M'},
+  {id:'mx',name:'Mexico',loc:[23.63,-102.55],ndvi:0.52,water:48,food:'Phase 2',pop:'128M'},
+  {id:'br',name:'Brazil',loc:[-14.23,-51.92],ndvi:0.78,water:82,food:'Phase 1',pop:'214M'},
+  {id:'ar',name:'Argentina',loc:[-38.41,-63.61],ndvi:0.61,water:65,food:'Phase 1',pop:'45M'},
+  {id:'co',name:'Colombia',loc:[4.57,-74.29],ndvi:0.82,water:78,food:'Phase 1',pop:'51M'},
+  {id:'pe',name:'Peru',loc:[-9.19,-75.01],ndvi:0.45,water:55,food:'Phase 2',pop:'33M'},
+  {id:'uk',name:'United Kingdom',loc:[55.37,-3.43],ndvi:0.62,water:75,food:'Phase 1',pop:'67M'},
+  {id:'fr',name:'France',loc:[46.22,2.21],ndvi:0.66,water:70,food:'Phase 1',pop:'68M'},
+  {id:'de',name:'Germany',loc:[51.16,10.45],ndvi:0.64,water:72,food:'Phase 1',pop:'84M'},
+  {id:'it',name:'Italy',loc:[41.87,12.56],ndvi:0.58,water:58,food:'Phase 1',pop:'60M'},
+  {id:'es',name:'Spain',loc:[40.46,-3.74],ndvi:0.48,water:42,food:'Phase 1',pop:'47M'},
+  {id:'ua',name:'Ukraine',loc:[48.37,31.16],ndvi:0.59,water:55,food:'Phase 2',pop:'44M'},
+  {id:'ru',name:'Russia',loc:[61.52,105.31],ndvi:0.42,water:86,food:'Phase 1',pop:'145M'},
+  {id:'eg',name:'Egypt',loc:[26.82,30.80],ndvi:0.15,water:22,food:'Phase 2',pop:'104M'},
+  {id:'ng',name:'Nigeria',loc:[9.08,8.67],ndvi:0.62,water:52,food:'Phase 3',pop:'218M'},
+  {id:'et',name:'Ethiopia',loc:[9.14,40.48],ndvi:0.38,water:28,food:'Phase 4',pop:'120M'},
+  {id:'ke',name:'Kenya',loc:[-0.02,37.90],ndvi:0.42,water:35,food:'Phase 3',pop:'55M'},
+  {id:'za',name:'South Africa',loc:[-30.55,22.93],ndvi:0.51,water:44,food:'Phase 2',pop:'60M'},
+  {id:'sd',name:'Sudan',loc:[12.86,30.21],ndvi:0.22,water:18,food:'Phase 4',pop:'44M'},
+  {id:'so',name:'Somalia',loc:[5.15,46.19],ndvi:0.18,water:12,food:'Phase 4',pop:'17M'},
+  {id:'cd',name:'DR Congo',loc:[-4.03,21.75],ndvi:0.76,water:72,food:'Phase 3',pop:'99M'},
+  {id:'tz',name:'Tanzania',loc:[-6.36,34.88],ndvi:0.58,water:48,food:'Phase 2',pop:'63M'},
+  {id:'zw',name:'Zimbabwe',loc:[-19.01,29.15],ndvi:0.41,water:32,food:'Phase 2',pop:'15M'},
+  {id:'mg',name:'Madagascar',loc:[-18.76,46.86],ndvi:0.55,water:45,food:'Phase 2',pop:'28M'},
+  {id:'sa',name:'Saudi Arabia',loc:[23.88,45.07],ndvi:0.08,water:15,food:'Phase 1',pop:'35M'},
+  {id:'in',name:'India',loc:[20.59,78.96],ndvi:0.56,water:42,food:'Phase 2',pop:'1.4B'},
+  {id:'cn',name:'China',loc:[35.86,104.19],ndvi:0.62,water:58,food:'Phase 1',pop:'1.4B'},
+  {id:'pk',name:'Pakistan',loc:[30.37,69.34],ndvi:0.42,water:35,food:'Phase 2',pop:'225M'},
+  {id:'bd',name:'Bangladesh',loc:[23.68,90.35],ndvi:0.72,water:78,food:'Phase 2',pop:'170M'},
+  {id:'th',name:'Thailand',loc:[15.87,100.99],ndvi:0.74,water:68,food:'Phase 1',pop:'72M'},
+  {id:'vn',name:'Vietnam',loc:[14.05,108.27],ndvi:0.71,water:72,food:'Phase 1',pop:'98M'},
+  {id:'id',name:'Indonesia',loc:[-0.78,113.92],ndvi:0.80,water:82,food:'Phase 1',pop:'275M'},
+  {id:'jp',name:'Japan',loc:[36.20,138.25],ndvi:0.68,water:78,food:'Phase 1',pop:'125M'},
+  {id:'af',name:'Afghanistan',loc:[33.93,67.70],ndvi:0.20,water:20,food:'Phase 3',pop:'40M'},
+  {id:'au',name:'Australia',loc:[-25.27,133.77],ndvi:0.35,water:38,food:'Phase 1',pop:'26M'},
+  {id:'nz',name:'New Zealand',loc:[-40.90,174.88],ndvi:0.72,water:85,food:'Phase 1',pop:'5M'}
 ];
 
-const oceans = [
-  {d:'M 250 80 L 340 70 L 350 200 L 300 400 L 200 420 L 160 300 L 180 200 Z', c:'rgba(59,130,246,0.06)'},
-  {d:'M 740 20 L 840 10 L 840 460 L 730 460 L 710 300 L 720 100 Z', c:'rgba(59,130,246,0.04)'},
-  {d:'M 450 260 L 650 250 L 660 400 L 500 410 L 430 340 Z', c:'rgba(59,130,246,0.05)'},
-  {d:'M 350 145 L 470 138 L 475 160 L 355 168 Z', c:'rgba(59,130,246,0.09)'},
-];
+let mapInited = false;
+let map;
+let tileLayer;
 
-const alertPins = [
-  {x:480,y:252,c:'#ef4444',l:'Drought Alert'},{x:505,y:260,c:'#ef4444',l:'Famine Risk'},
-  {x:445,y:228,c:'#ef4444',l:'Conflict Zone'},{x:570,y:190,c:'#f59e0b',l:'Crop Stress'},
-  {x:447,y:350,c:'#f59e0b',l:'Low Reservoir'},{x:610,y:208,c:'#3b82f6',l:'Flood Warning'},
-];
-
-let mapInited = false, mapScale = 1;
 function initMapOnce() {
   if (mapInited) return; mapInited = true;
-  const svg = document.getElementById('worldMap');
+  
+  if (typeof L === 'undefined') {
+    console.error("Leaflet.js not loaded. Required for rendering Map.");
+    return;
+  }
+  
+  map = L.map('worldMap', { zoomControl: false }).setView([20, 0], 2);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+  
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const baseMapUrl = currentTheme === 'light' 
+    ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    
+  tileLayer = L.tileLayer(baseMapUrl, {
+    attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-  // Oceans
-  oceans.forEach(o => { const p = mkSVG('path'); p.setAttribute('d',o.d); p.setAttribute('fill',o.c); svg.appendChild(p); });
-
-  // Grid
-  for(let x=0;x<=820;x+=82){ const l=mkSVG('line'); l.setAttribute('x1',x);l.setAttribute('y1',0);l.setAttribute('x2',x);l.setAttribute('y2',460);l.setAttribute('stroke','rgba(255,255,255,0.02)');l.setAttribute('stroke-width','0.5');svg.appendChild(l); }
-  for(let y=0;y<=460;y+=46){ const l=mkSVG('line'); l.setAttribute('x1',0);l.setAttribute('y1',y);l.setAttribute('x2',820);l.setAttribute('y2',y);l.setAttribute('stroke','rgba(255,255,255,0.02)');l.setAttribute('stroke-width','0.5');svg.appendChild(l); }
-
-  // Countries
-  mapCountries.forEach(co => {
-    const p = mkSVG('path');
-    p.setAttribute('d', co.d); p.setAttribute('fill', co.c);
-    p.setAttribute('stroke', 'rgba(255,255,255,0.12)'); p.setAttribute('stroke-width', '0.7');
-    p.style.cursor = 'pointer'; p.style.transition = 'all 0.25s';
-    p.addEventListener('mouseenter', e => { p.setAttribute('stroke','#fff');p.setAttribute('stroke-width','1.5');p.style.filter='brightness(1.3) drop-shadow(0 0 8px rgba(255,255,255,0.15))'; showTip(e,`${co.name} — NDVI: ${co.ndvi} | Water: ${co.water}%`); });
-    p.addEventListener('mouseleave', () => { p.setAttribute('stroke','rgba(255,255,255,0.12)');p.setAttribute('stroke-width','0.7');p.style.filter='none'; hideTip(); });
-    p.addEventListener('click', () => showCountryDetail(co));
-    svg.appendChild(p);
-    // Label
-    const ctr = pathCenter(co.d);
-    const t = mkSVG('text'); t.setAttribute('x',ctr.x);t.setAttribute('y',ctr.y);t.setAttribute('fill','rgba(255,255,255,0.5)');t.setAttribute('font-size','6.5');t.setAttribute('text-anchor','middle');t.setAttribute('font-family','Outfit');t.setAttribute('pointer-events','none');t.textContent=co.id.toUpperCase();svg.appendChild(t);
+  // Standard Push Pins
+  mapPins.forEach(co => {
+    const marker = L.marker(co.loc).addTo(map);
+    
+    // Popup
+    const fc = {'Phase 1':'var(--accent-green)','Phase 2':'var(--accent-amber)','Phase 3':'var(--accent-red)','Phase 4':'#d73027'};
+    const ndviCol = co.ndvi>=0.6?'var(--accent-green)':co.ndvi>=0.4?'var(--accent-amber)':'var(--accent-red)';
+    const waterCol = co.water>=60?'var(--accent-blue)':co.water>=35?'var(--accent-amber)':'var(--accent-red)';
+    const foodCol = fc[co.food]||'inherit';
+    
+    const popupContent = `
+      <div style="font-family: 'Outfit'; width: 220px; padding: 5px;">
+        <h3 style="font-size: 15px; font-weight: 650; margin: 0 0 10px 0; color: var(--text-primary);">${co.name}</h3>
+        <div style="font-size: 12px; margin-bottom: 5px; color: var(--text-secondary);"><strong>Pop:</strong> ${co.pop}</div>
+        <div style="font-size: 12px; margin-bottom: 5px; color: ${ndviCol};"><strong>NDVI:</strong> ${co.ndvi}</div>
+        <div style="font-size: 12px; margin-bottom: 5px; color: ${waterCol};"><strong>Water:</strong> ${co.water}%</div>
+        <div style="font-size: 12px; font-weight: 700; color: ${foodCol};"><strong>Food:</strong> ${co.food}</div>
+      </div>
+    `;
+    marker.bindPopup(popupContent);
+    marker.on('click', () => showCountryDetail(co));
   });
 
-  // Alert pins
-  alertPins.forEach(a => {
-    const pulse=mkSVG('circle'); pulse.setAttribute('cx',a.x);pulse.setAttribute('cy',a.y);pulse.setAttribute('r','5');pulse.setAttribute('fill','none');pulse.setAttribute('stroke',a.c);pulse.setAttribute('stroke-width','1.5');
-    pulse.innerHTML=`<animate attributeName="r" from="5" to="15" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.6" to="0" dur="2s" repeatCount="indefinite"/>`;
-    svg.appendChild(pulse);
-    const dot=mkSVG('circle'); dot.setAttribute('cx',a.x);dot.setAttribute('cy',a.y);dot.setAttribute('r','4.5');dot.setAttribute('fill',a.c);dot.setAttribute('opacity','0.85');dot.style.cursor='pointer';
-    dot.addEventListener('mouseenter',e=>showTip(e,a.l));dot.addEventListener('mouseleave',hideTip);
-    svg.appendChild(dot);
-  });
-
-  // Chips
+  // Filters setup
   document.getElementById('mapChips').innerHTML = ['NDVI','Soil Moisture','Rainfall','Food Security','Water Bodies'].map((l,i) => `<div class="chip${i===0?' on':''}" onclick="this.classList.toggle('on')">${l}</div>`).join('');
 
-  // Default detail
   showMapOverview();
 }
-
-function mkSVG(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
-function pathCenter(d) { const n=d.match(/[\d.]+/g).map(Number); let sx=0,sy=0,c=0; for(let i=0;i<n.length;i+=2){sx+=n[i];sy+=n[i+1];c++;} return {x:sx/c,y:sy/c}; }
 
 function showMapOverview() {
   document.getElementById('mapDetail').innerHTML = `
@@ -454,21 +465,22 @@ function showMapOverview() {
     <div class="md-row"><span class="md-l">Flood Alerts</span><span class="md-v" style="color:var(--accent-amber)">8</span></div>
     <div class="md-row"><span class="md-l">Satellite Revisit</span><span class="md-v">5 days</span></div>
     <div class="md-row"><span class="md-l">Last Update</span><span class="md-v">2 min ago</span></div>
-    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-secondary)">📡 Click any country for detailed EO analytics</div>
+    <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-secondary)">📡 Click any map pin for detailed EO analytics</div>
   `;
 }
 
 function showCountryDetail(co) {
   const fc = {'Phase 1':'var(--accent-green)','Phase 2':'var(--accent-amber)','Phase 3':'var(--accent-red)','Phase 4':'#d73027'};
+  const ndviCol = co.ndvi>=0.6?'var(--accent-green)':co.ndvi>=0.4?'var(--accent-amber)':'var(--accent-red)';
   document.getElementById('mapDetail').innerHTML = `
     <h3 style="cursor:pointer" onclick="showMapOverview()">← ${co.name}</h3>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Population: ${co.pop}</div>
-    <div class="md-row"><span class="md-l">NDVI Index</span><span class="md-v" style="color:${co.ndvi>=0.6?'var(--accent-green)':co.ndvi>=0.4?'var(--accent-amber)':'var(--accent-red)'}">${co.ndvi}</span></div>
+    <div class="md-row"><span class="md-l">NDVI Index</span><span class="md-v" style="color:${ndviCol}">${co.ndvi}</span></div>
     <div class="md-row"><span class="md-l">Water Score</span><span class="md-v" style="color:${co.water>=60?'var(--accent-blue)':co.water>=35?'var(--accent-amber)':'var(--accent-red)'}">${co.water}%</span></div>
     <div class="md-row"><span class="md-l">Food Security</span><span class="md-v" style="color:${fc[co.food]||'inherit'}">${co.food}</span></div>
     <div style="margin-top:14px">
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px">Vegetation Health</div>
-      <div style="height:8px;border-radius:4px;background:var(--bg-tertiary);overflow:hidden"><div style="width:${co.ndvi*100}%;height:100%;border-radius:4px;background:${co.c}"></div></div>
+      <div style="height:8px;border-radius:4px;background:var(--bg-tertiary);overflow:hidden"><div style="width:${co.ndvi*100}%;height:100%;border-radius:4px;background:${ndviCol}"></div></div>
     </div>
     <div style="margin-top:10px">
       <div style="font-size:11px;color:var(--text-muted);margin-bottom:5px">Water Availability</div>
@@ -477,8 +489,6 @@ function showCountryDetail(co) {
   `;
 }
 
-function zoomMap(f) { mapScale*=f; mapScale=Math.max(0.5,Math.min(5,mapScale)); const svg=document.getElementById('worldMap'); const w=860/mapScale,h=470/mapScale; svg.setAttribute('viewBox',`${430-w/2} ${235-h/2} ${w} ${h}`); }
-function resetMap() { mapScale=1; document.getElementById('worldMap').setAttribute('viewBox','-20 -10 860 470'); }
 
 // ─── TOOLTIP ───
 function showTip(e, text) { const t=document.getElementById('ttp'); t.textContent=text; t.style.left=(e.clientX+14)+'px'; t.style.top=(e.clientY-12)+'px'; t.classList.add('on'); }

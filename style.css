@@ -1,16 +1,17 @@
 :root {
-  --bg-deep: #040812;
-  --bg-primary: #070d1b;
-  --bg-secondary: #0c1526;
-  --bg-tertiary: #121e34;
-  --bg-card: #0e1829;
-  --bg-card-hover: #152236;
-  --border: #1a2847;
-  --border-glow: #2563eb;
-  --text-primary: #e4eaf6;
-  --text-secondary: #7e90b0;
-  --text-muted: #4a5e80;
-  --accent-blue: #3b82f6;
+  /* EMHARE Navy Dark Theme */
+  --bg-deep: #000c1a;
+  --bg-primary: #001933;
+  --bg-secondary: #002244;
+  --bg-tertiary: #003366;
+  --bg-card: #002b5e;
+  --bg-card-hover: #003d82;
+  --border: #004080;
+  --text-primary: #f0f4f8;
+  --text-secondary: #b3cce6;
+  --text-muted: #6699cc;
+  
+  --accent-blue: #F59D1F; /* EMHARE Orange */
   --accent-green: #22c55e;
   --accent-emerald: #10b981;
   --accent-cyan: #06b6d4;
@@ -19,11 +20,29 @@
   --accent-rose: #f43f5e;
   --accent-purple: #a855f7;
   --accent-teal: #14b8a6;
+  
   --sidebar-w: 260px;
   --header-h: 54px;
   --radius: 10px;
-  --glow-b: 0 0 30px rgba(59,130,246,0.1);
-  --glow-g: 0 0 30px rgba(34,197,94,0.1);
+  --glow-b: 0 0 30px rgba(245, 157, 31, 0.15);
+  --glow-g: 0 0 30px rgba(34, 197, 94, 0.1);
+}
+
+[data-theme="light"] {
+  /* EMHARE Light Theme */
+  --bg-deep: #eef2f6;
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #e2e8f0;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --border: #cbd5e1;
+  
+  --text-primary: #001933;
+  --text-secondary: #003366;
+  --text-muted: #4a5e80;
+  
+  --accent-blue: #F59D1F;
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -470,24 +489,33 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var
 }
 .map-btn {
   width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(7,13,27,0.9); border: 1px solid var(--border);
+  background: rgba(0,25,51,0.9); border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: var(--text-secondary); font-size: 16px;
   backdrop-filter: blur(12px); transition: all 0.15s; font-family: 'JetBrains Mono';
 }
 .map-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
+/* LEAFLET OVERRIDES */
+.leaflet-container { background: var(--bg-deep) !important; font-family: 'Outfit', sans-serif !important; }
+.leaflet-popup-content-wrapper { background: var(--bg-secondary) !important; color: var(--text-primary) !important; border: 1px solid var(--border); border-radius: 10px; }
+.leaflet-popup-tip { background: var(--bg-secondary) !important; border: 1px solid var(--border); }
+.leaflet-popup-close-button { color: var(--text-muted) !important; }
+.leaflet-control-zoom { border: none !important; box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; }
+.leaflet-control-zoom a { background: var(--bg-secondary) !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border) !important; }
+.leaflet-control-zoom a:hover { color: var(--accent-blue) !important; }
+
 .map-chips {
   position: absolute; top: 14px; left: 64px; z-index: 10; display: flex; gap: 6px;
 }
 .chip {
   padding: 7px 16px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
-  background: rgba(7,13,27,0.88); border: 1px solid var(--border);
+  background: var(--bg-secondary); border: 1px solid var(--border);
   cursor: pointer; color: var(--text-secondary); transition: all 0.15s;
   backdrop-filter: blur(12px);
 }
-.chip.on { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); color: var(--accent-blue); }
-.chip:hover { border-color: rgba(59,130,246,0.3); }
+.chip.on { background: rgba(245,157,31,0.15); border-color: var(--accent-blue); color: var(--accent-blue); }
+.chip:hover { border-color: var(--accent-blue); }
 
 .map-legend-box {
   position: absolute; bottom: 14px; left: 14px; z-index: 10;
@@ -500,7 +528,7 @@ body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var
 
 .map-detail {
   position: absolute; top: 14px; right: 14px; z-index: 10; width: 310px;
-  background: rgba(7,13,27,0.92); backdrop-filter: blur(12px);
+  background: var(--bg-secondary); backdrop-filter: blur(12px);
   border: 1px solid var(--border); border-radius: 14px;
   padding: 20px; max-height: calc(100% - 28px); overflow-y: auto;
 }
