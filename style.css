@@ -551,3 +551,22 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
   .map-chips { flex-wrap: wrap; max-width: calc(100% - 80px); }
 }
 @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+/* ─── WAF.EO LOGO ─── */
+.waf-logo-box {
+  display: flex; align-items: center; background: #1a1e26;
+  border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2); height: 38px;
+}
+.waf-logo-box span {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 100%; padding: 0 12px; font-size: 20px; font-weight: 800;
+  border-right: 1px solid rgba(255,255,255,0.06); font-family: 'Outfit', sans-serif;
+  color: #fff;
+}
+.waf-logo-box span:last-child { border-right: none; }
+.waf-w { color: #0a6952 !important; }
+.waf-a { color: #538116 !important; }
+.waf-f { color: #b97416 !important; }
+.waf-e { color: #8cb6df !important; }
+.waf-o { color: #9bbbd5 !important; }
