@@ -177,36 +177,65 @@ function loadDashboardDemo() {
   loadReliefWebNews();
 }
 
-// ─── LIVE RELIEFWEB NEWS FEED ───
+// ─── LIVE MULTI-SOURCE NEWS FEED ───
 async function loadReliefWebNews() {
   const panel = document.getElementById('newsPanel');
   if (!panel) return;
-  panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News — Water, Agriculture & Food Security</h3><span class="panel-badge" style="background:var(--accent-blue)">ReliefWeb API</span></div><div style="padding:16px;color:var(--text-muted);font-size:13px">Loading latest reports...</div>';
+  panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture & Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">Loading...</span></div><div style="padding:16px;color:var(--text-muted);font-size:13px">Fetching latest global reports...</div>';
   
+  const allNews = [];
+  
+  // Source 1: ReliefWeb Reports — Food & Nutrition
   try {
-    const res = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo-digital-twin&filter[operator]=AND&filter[conditions][0][field]=theme.name&filter[conditions][0][value][]=Food and Nutrition&filter[conditions][0][value][]=Water Sanitation Hygiene&filter[conditions][0][value][]=Agriculture&filter[conditions][0][operator]=OR&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
-    const data = await res.json();
-    
-    if (data && data.data && data.data.length > 0) {
-      const items = data.data.map(r => {
-        const f = r.fields;
-        const date = new Date(f.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
-        const source = f.source && f.source.length > 0 ? f.source[0].name : 'ReliefWeb';
-        const countries = f.country && f.country.length > 0 ? f.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
-        return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
-          <div style="font-size:18px;flex-shrink:0">📰</div>
-          <div style="flex:1;min-width:0">
-            <a href="${f.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:4px">${f.title}</a>
-            <div style="font-size:11px;color:var(--text-muted)">📍 ${countries} · 🏢 ${source} · 📅 ${date}</div>
-          </div>
-        </div>`;
-      }).join('');
-      panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News — Water, Agriculture & Food Security</h3><span class="panel-badge" style="background:var(--accent-blue)">ReliefWeb Live</span></div>' + items;
-    }
-  } catch (err) {
-    console.error('ReliefWeb news fetch error:', err);
-    panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News</h3><span class="panel-badge">Offline</span></div><div style="padding:16px;font-size:13px;color:var(--text-muted)">Unable to load live news. Check connection.</div>';
+    const r1 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Food and Nutrition&limit=8&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
+    const d1 = await r1.json();
+    if (d1 && d1.data) d1.data.forEach(r => allNews.push({ ...r.fields, tag: '🛡️ Food Security' }));
+  } catch(e) { console.warn('ReliefWeb food fetch err', e); }
+  
+  // Source 2: ReliefWeb Reports — Agriculture
+  try {
+    const r2 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Agriculture&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
+    const d2 = await r2.json();
+    if (d2 && d2.data) d2.data.forEach(r => allNews.push({ ...r.fields, tag: '🌾 Agriculture' }));
+  } catch(e) { console.warn('ReliefWeb agri fetch err', e); }
+
+  // Source 3: ReliefWeb Reports — Water
+  try {
+    const r3 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Water Sanitation Hygiene&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
+    const d3 = await r3.json();
+    if (d3 && d3.data) d3.data.forEach(r => allNews.push({ ...r.fields, tag: '💧 Water' }));
+  } catch(e) { console.warn('ReliefWeb water fetch err', e); }
+
+  // Deduplicate by title
+  const seen = new Set();
+  const unique = allNews.filter(n => { if (seen.has(n.title)) return false; seen.add(n.title); return true; });
+  
+  // Sort by date (newest first)
+  unique.sort((a, b) => new Date(b.date?.created || 0) - new Date(a.date?.created || 0));
+
+  if (unique.length === 0) {
+    panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live News</h3><span class="panel-badge">Offline</span></div><div style="padding:16px;font-size:13px;color:var(--text-muted)">Unable to load live news. Check your connection.</div>';
+    return;
   }
+
+  const tagColors = { '🛡️ Food Security': 'var(--accent-red)', '🌾 Agriculture': 'var(--accent-green)', '💧 Water': 'var(--accent-blue)' };
+
+  const items = unique.slice(0, 15).map(f => {
+    const date = f.date?.created ? new Date(f.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Today';
+    const source = f.source && f.source.length > 0 ? f.source[0].name : 'ReliefWeb';
+    const countries = f.country && f.country.length > 0 ? f.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
+    const tc = tagColors[f.tag] || 'var(--accent-blue)';
+    return `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
+      <div style="flex-shrink:0;margin-top:2px"><span style="background:${tc};color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap">${f.tag}</span></div>
+      <div style="flex:1;min-width:0">
+        <a href="${f.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:3px;line-height:1.3">${f.title}</a>
+        <div style="font-size:10px;color:var(--text-muted)">📍 ${countries} · 🏢 ${source} · 📅 ${date}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture & Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">
+    ${unique.length} Reports</span></div>${items}`;
 }
 
 function renderStats(s) {
@@ -425,10 +454,11 @@ function initMapOnce() {
   // Transparent labels & roads overlay
   const gmapLabelsOverlay = L.tileLayer('https://mt{s}.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', { ...labelOptions, subdomains: '0123' });
 
-  let currentBase = gmapTerrain;
+  let currentBase = gmapStreets;
   let currentLabels = gmapLabelsOverlay;
   currentBase.addTo(map);
-  currentLabels.addTo(map);
+  // Do NOT add labels overlay in initial Map/Streets mode — labels are already baked into the base tile
+  // Only add labels overlay in Satellite mode (handled by updateGoogleLayer)
 
   function updateGoogleLayer() {
     if(map.hasLayer(currentBase)) map.removeLayer(currentBase);
