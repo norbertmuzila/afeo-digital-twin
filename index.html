@@ -93,6 +93,7 @@
         <div class="nav-group-label">System</div>
         <div class="nav-link" data-page="reports"><span class="ni">📋</span>Reports</div>
         <div class="nav-link" data-page="settings"><span class="ni">⚙️</span>Settings</div>
+        <div class="nav-link" data-page="ai-assistant"><span class="ni">🤖</span>AI Assistant</div>
       </div>
     </nav>
     <div class="sb-user">
@@ -200,6 +201,28 @@
     <div class="page" id="pg-early-warning"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚠️</span><h3>Early Warning System</h3><p>Predictive analytics combining satellite EO, weather models, market prices, and conflict data. 90-day food security forecasts with IPC-compatible classifications for humanitarian response planning.</p></div></div></div></div>
     <div class="page" id="pg-reports"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">📋</span><h3>Reports & Analytics</h3><p>Generate custom reports for any region, time period, and thematic area. Export as PDF, CSV, or GeoTIFF. Automated weekly briefings for government agencies and humanitarian organizations.</p></div></div></div></div>
     <div class="page" id="pg-settings"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚙️</span><h3>Platform Settings</h3><p>Manage satellite data sources, alert thresholds, notification preferences, user roles, and API integrations. Configure custom NDVI thresholds for your specific crop types and regions.</p></div></div></div></div>
+    
+    <!-- ═══ AI ASSISTANT ═══ -->
+    <div class="page" id="pg-ai-assistant" style="height: 100%;">
+      <div class="pg-pad" style="height: 100%; display:flex; flex-direction:column; padding-bottom: 24px;">
+        <div class="panel" style="flex:1; display:flex; flex-direction:column; background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+          <div class="panel-hdr">
+            <h3 style="display:flex; align-items:center; gap:8px;">🤖 WAF.EO Intelligence</h3>
+            <span class="panel-badge" style="background:var(--accent-emerald);">Llama 3 70B Active</span>
+          </div>
+          <div id="aiChatWindow" style="flex:1; overflow-y:auto; padding: 24px; background: var(--bg-deep); display:flex; flex-direction:column; gap: 16px;">
+            <div class="chat-msg bot">
+              <div class="cm-avatar">🤖</div>
+              <div class="cm-bubble">Hello! I am your WAF.EO AI Assistant. I can help you analyze Earth Observation data, understand NDVI metrics, track water resources, and explain food security warnings on the platform. How can I assist you today?</div>
+            </div>
+          </div>
+          <div style="padding: 16px; border-top: 1px solid var(--border); background: #fff; display:flex; gap: 12px; align-items:center;">
+            <input type="text" id="aiInput" placeholder="Ask securely about any EO data or platform features..." style="flex:1; padding: 14px 20px; border-radius: 25px; border: 1px solid #dcdcdc; outline:none; font-family:inherit; font-size: 14px; background: #f9f9f9;">
+            <button id="aiSendBtn" style="padding: 14px 24px; border-radius: 25px; border:none; background: var(--accent-blue); color:#fff; font-weight:bold; cursor:pointer; transition: background 0.2s;">Send ⮞</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

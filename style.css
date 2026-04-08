@@ -602,3 +602,29 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .g-btn-dropdown input {
   margin: 0; cursor: pointer; accent-color: #1a73e8;
 }
+
+/* ─── AI ASSISTANT CHAT UI ─── */
+.chat-msg {
+  display: flex; gap: 12px; max-width: 85%;
+}
+.chat-msg.bot {
+  align-self: flex-start;
+}
+.chat-msg.user {
+  align-self: flex-end; flex-direction: row-reverse;
+}
+.cm-avatar {
+  width: 36px; height: 36px; background: #e3ebf3; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.user .cm-avatar {
+  background: var(--accent-blue); color: #fff;
+}
+.cm-bubble {
+  background: #fff; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--border); font-size: 14px; line-height: 1.5; color: var(--text-primary); box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+.user .cm-bubble {
+  background: var(--accent-blue); color: #fff; border-color: var(--accent-blue);
+}
+.chat-msg.typing .cm-bubble {
+  color: #888; font-style: italic;
+}
