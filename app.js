@@ -356,11 +356,11 @@ function initMapOnce() {
   const baseOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
   const labelOptions = { ...baseOptions, pane: 'labels' };
   
-  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', baseOptions);
-  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', baseOptions);
-  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', baseOptions);
+  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
   // Transparent labels & roads overlay
-  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', labelOptions);
+  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', labelOptions);
 
   let currentBase = gmapTerrain;
   let currentLabels = gmapLabelsOverlay;
@@ -383,11 +383,9 @@ function initMapOnce() {
     
     currentBase.addTo(map);
     
-    // In Satellite mode, add labels overlay cleanly if checked. 
-    // In Map mode, add overlay to pierce through GeoJSON colors for bright crisp names.
+    // In Satellite mode, add labels overlay perfectly.
+    // In Map mode, DO NOT add labels overlay, because the base maps already contain labels. Adding it twice causes ugly bold shadows!
     if (!isMap && labels) {
-      currentLabels.addTo(map);
-    } else if (isMap) {
       currentLabels.addTo(map);
     }
     
