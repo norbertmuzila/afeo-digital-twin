@@ -20,7 +20,15 @@ const aiInput = document.getElementById('aiInput');
 if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
   aiFabBtn.addEventListener('click', () => {
     aiWidgetPanel.style.display = aiWidgetPanel.style.display === 'flex' ? 'none' : 'flex';
- async function doLogin() {
+    if (aiWidgetPanel.style.display === 'flex') aiInput.focus();
+  });
+  aiCloseBtn.addEventListener('click', () => {
+    aiWidgetPanel.style.display = 'none';
+  });
+}
+
+async function doLogin() {
+
   const username = document.getElementById('inUser').value.trim();
   const password = document.getElementById('inPass').value;
   const errEl = document.getElementById('loginError');
