@@ -526,7 +526,7 @@ document.getElementById('globalSearch').addEventListener('input', async function
 // ─── AI ASSISTANT LOGIC ───
 const groqApiKey = ['gsk_g2', 'vb2K0D', 'LNH87GWq', '3GDvW', 'Gdyb3F', 'YmHB7oA', 'AoStLNb', 'Vzbkv', '9nUaZW'].join('');
 let chatHistory = [
-  { role: "system", content: "You are the WAF.EO Digital Twin AI Assistant. You help users understand Earth Observation data, NDVI scores, agriculture, water resources, and food security warnings in Africa. Be concise, professional, and intelligent. Format clearly." }
+  { role: "system", content: "You are the WAFEO Digital Twin AI Assistant. You help users understand Earth Observation data, NDVI scores, agriculture, water resources, and food security warnings in Africa. Be concise, professional, and intelligent. Format clearly." }
 ];
 
 const aiSendBtn = document.getElementById('aiSendBtn');
@@ -576,7 +576,7 @@ async function handleUserMsg() {
     
   } catch (err) {
     if(document.getElementById(typingId)) document.getElementById(typingId).remove();
-    appendChatMsg('bot', '🤖', 'Sorry, I encountered a network error connecting to WAF.EO Intelligence.');
+    appendChatMsg('bot', '🤖', 'Sorry, I encountered a network error connecting to WAFEO Intelligence.');
     console.error(err);
   }
 }
