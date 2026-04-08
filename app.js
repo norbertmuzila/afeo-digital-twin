@@ -356,11 +356,11 @@ function initMapOnce() {
   const baseOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
   const labelOptions = { ...baseOptions, pane: 'labels' };
   
-  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
-  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
-  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', baseOptions);
+  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', baseOptions);
+  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', baseOptions);
   // Transparent labels & roads overlay
-  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', labelOptions);
+  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}', labelOptions);
 
   let currentBase = gmapTerrain;
   let currentLabels = gmapLabelsOverlay;
@@ -427,16 +427,16 @@ function initMapOnce() {
       function style(feature) {
         return {
           fillColor: getColor(feature.properties.name),
-          weight: 1.2,
-          opacity: 0.8,
+          weight: 0.5,
+          opacity: 0.7,
           color: '#ffffff',
-          fillOpacity: 0.35 // Restored to a richer color since names are now separated
+          fillOpacity: 0.3
         };
       }
 
       function highlightFeature(e) {
         var layer = e.target;
-        layer.setStyle({ weight: 2.5, color: '#f59d1f', fillOpacity: 0.5 });
+        layer.setStyle({ weight: 1.5, color: '#f59d1f', fillOpacity: 0.5 });
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { layer.bringToFront(); }
       }
 
