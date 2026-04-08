@@ -57,6 +57,31 @@ function auth(req, res, next) {
   }
 }
 
+// ─── RSS PARSER (no extra library needed) ───────────────────
+function parseRSS(xml, sourceName, tag) {
+  const items = [];
+  const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
+  for (const block of blocks.slice(0, 8)) {
+    const getTag = (t) => {
+      const m = block.match(new RegExp(`<${t}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${t}>`, 'i'));
+      return m ? m[1].trim().replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#\d+;/g,'') : '';
+    };
+    const title = getTag('title');
+    const link  = getTag('link') || getTag('guid');
+    const pubDate = getTag('pubDate') || getTag('dc:date');
+    if (title) items.push({
+      title,
+      url: link,
+      date: { created: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString() },
+      source: [{ name: sourceName }],
+      country: [],
+      tag,
+      sourceName
+    });
+  }
+  return items;
+}
+
 // ─── NEWS CACHE (30-min TTL) ─────────────────────────────────
 const newsCache = { data: null, fetchedAt: 0, ttl: 30 * 60 * 1000 };
 
@@ -67,34 +92,65 @@ async function fetchLiveNews() {
   }
 
   const all = [];
+  const timeout = (ms) => ({ signal: AbortSignal.timeout(ms) });
 
-  const urls = [
-    { url: 'https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Food%20and%20Nutrition&limit=8&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', tag: 'Food Security' },
-    { url: 'https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Agriculture&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', tag: 'Agriculture' },
-    { url: 'https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Water%20Sanitation%20Hygiene&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', tag: 'Water' }
-  ];
+  // ── Source 1: ReliefWeb — Food & Nutrition (JSON) ──────────
+  try {
+    const r = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Food%20and%20Nutrition&limit=8&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', timeout(8000));
+    const d = await r.json();
+    if (d?.data) d.data.forEach(x => all.push({ ...x.fields, tag: 'Food Security' }));
+  } catch(e) { console.warn('[news] ReliefWeb Food:', e.message); }
 
-  await Promise.allSettled(urls.map(async ({ url, tag }) => {
-    try {
-      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
-      const data = await res.json();
-      if (data && data.data) {
-        data.data.forEach(r => all.push({ ...r.fields, tag }));
-      }
-    } catch (e) {
-      console.warn(`[WARN] news fetch (${tag}):`, e.message);
-    }
-  }));
+  // ── Source 2: ReliefWeb — Agriculture (JSON) ───────────────
+  try {
+    const r = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Agriculture&limit=7&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', timeout(8000));
+    const d = await r.json();
+    if (d?.data) d.data.forEach(x => all.push({ ...x.fields, tag: 'Agriculture' }));
+  } catch(e) { console.warn('[news] ReliefWeb Agri:', e.message); }
 
-  // Deduplicate and sort newest first
+  // ── Source 3: ReliefWeb — Water Sanitation (JSON) ──────────
+  try {
+    const r = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Water%20Sanitation%20Hygiene&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url', timeout(8000));
+    const d = await r.json();
+    if (d?.data) d.data.forEach(x => all.push({ ...x.fields, tag: 'Water' }));
+  } catch(e) { console.warn('[news] ReliefWeb Water:', e.message); }
+
+  // ── Source 4: FAO Newsroom RSS ──────────────────────────────
+  try {
+    const r = await fetch('https://www.fao.org/news/rss-feed/en/', timeout(8000));
+    const xml = await r.text();
+    all.push(...parseRSS(xml, 'FAO', 'Agriculture'));
+  } catch(e) { console.warn('[news] FAO RSS:', e.message); }
+
+  // ── Source 5: WFP News RSS ──────────────────────────────────
+  try {
+    const r = await fetch('https://www.wfp.org/rss/news', timeout(8000));
+    const xml = await r.text();
+    all.push(...parseRSS(xml, 'WFP', 'Food Security'));
+  } catch(e) { console.warn('[news] WFP RSS:', e.message); }
+
+  // ── Source 6: GDACS Disaster Alerts RSS ────────────────────
+  try {
+    const r = await fetch('https://www.gdacs.org/xml/rss_10.xml', timeout(8000));
+    const xml = await r.text();
+    all.push(...parseRSS(xml, 'GDACS', 'Disaster'));
+  } catch(e) { console.warn('[news] GDACS RSS:', e.message); }
+
+  // ── Source 7: IFAD RSS ──────────────────────────────────────
+  try {
+    const r = await fetch('https://www.ifad.org/en/rss', timeout(8000));
+    const xml = await r.text();
+    all.push(...parseRSS(xml, 'IFAD', 'Agriculture'));
+  } catch(e) { console.warn('[news] IFAD RSS:', e.message); }
+
+  // Deduplicate + sort newest first
   const seen = new Set();
-  const unique = all.filter(n => {
-    if (seen.has(n.title)) return false;
-    seen.add(n.title);
-    return true;
-  }).sort((a, b) => new Date(b.date?.created || 0) - new Date(a.date?.created || 0));
+  const unique = all
+    .filter(n => { if (!n.title || seen.has(n.title)) return false; seen.add(n.title); return true; })
+    .sort((a, b) => new Date(b.date?.created || 0) - new Date(a.date?.created || 0));
 
-  newsCache.data = unique;
+  console.log(`[news] Aggregated ${unique.length} articles from ${all.length} raw items`);
+  newsCache.data    = unique;
   newsCache.fetchedAt = now;
   return unique;
 }

@@ -20,18 +20,17 @@ const aiInput = document.getElementById('aiInput');
 if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
   aiFabBtn.addEventListener('click', () => {
     aiWidgetPanel.style.display = aiWidgetPanel.style.display === 'flex' ? 'none' : 'flex';
-    if(aiWidgetPanel.style.display === 'flex') aiInput.focus();
-  });
-  aiCloseBtn.addEventListener('click', () => {
-    aiWidgetPanel.style.display = 'none';
-  });
-}
-
-async function doLogin() {
+ async function doLogin() {
   const username = document.getElementById('inUser').value.trim();
   const password = document.getElementById('inPass').value;
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter your username and password.';
+    errEl.classList.add('show');
+    return;
+  }
 
   try {
     const res = await fetch(API + '/auth/login', {
@@ -40,7 +39,7 @@ async function doLogin() {
       body: JSON.stringify({ username, password })
     });
     const data = await res.json();
-    if (!res.ok) { errEl.textContent = data.error || 'Login failed'; errEl.classList.add('show'); return; }
+    if (!res.ok) { errEl.textContent = data.error || 'Invalid credentials. Please try again.'; errEl.classList.add('show'); return; }
 
     authToken = data.token;
     currentUser = data.user;
@@ -53,19 +52,8 @@ async function doLogin() {
     loadDashboard();
     initMapOnce();
   } catch (err) {
-    errEl.textContent = 'Server unavailable — loading demo mode';
+    errEl.textContent = 'Cannot connect to server. Please check your connection and try again.';
     errEl.classList.add('show');
-    // Demo mode fallback
-    setTimeout(() => {
-      currentUser = { name: 'Demo User', role: 'admin' };
-      document.getElementById('sbName').textContent = 'Demo User';
-      document.getElementById('sbRole').textContent = 'Demo Mode';
-      document.getElementById('sbAvatar').textContent = 'DM';
-      document.getElementById('loginScreen').classList.add('out');
-      setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-      loadDashboardDemo();
-      initMapOnce();
-    }, 800);
   }
 }
 
@@ -139,104 +127,60 @@ async function apiFetch(path) {
 
 // ─── DASHBOARD ───
 async function loadDashboard() {
-  const stats = await apiFetch('/dashboard/stats');
-  const alerts = await apiFetch('/alerts');
-  const sats = await apiFetch('/satellites');
-  const ndvi = await apiFetch('/analytics/ndvi-by-region');
+  const [stats, alerts, sats, ndvi, news] = await Promise.all([
+    apiFetch('/dashboard/stats'),
+    apiFetch('/alerts'),
+    apiFetch('/satellites'),
+    apiFetch('/analytics/ndvi-by-region'),
+    apiFetch('/news')
+  ]);
 
   if (stats) renderStats(stats);
   if (alerts) renderAlerts(alerts.alerts);
   if (sats) renderSatellites(sats.satellites);
   if (ndvi) renderNDVIChart(ndvi.data);
+  if (news) renderNewsPanel(news.articles);
   renderWaterGauges();
   renderFoodQuick();
 }
 
-function loadDashboardDemo() {
-  renderStats({ cropHealth:{value:'78.4',change:'+3.2%',trend:'up'}, waterScore:{value:'62.1',change:'-5.8%',trend:'down'}, foodAlerts:{value:14,change:'+4 critical',trend:'up'}, satellites:{value:'7/9',change:'Sentinel-2, Landsat-9',trend:'up'} });
-  renderAlerts([
-    {severity:'critical',title:'Severe Drought — Horn of Africa',desc:'Rainfall deficit exceeding 60% across Somalia, Ethiopia.',source:'Sentinel-3 OLCI',timestamp:new Date().toISOString()},
-    {severity:'warning',title:'Crop Stress — Punjab, India',desc:'NDVI anomaly −0.18 in wheat belt.',source:'Landsat-9',timestamp:new Date().toISOString()},
-    {severity:'warning',title:'Reservoir Low — Lake Kariba',desc:'Water level at 34% capacity.',source:'GRACE-FO',timestamp:new Date().toISOString()},
-    {severity:'info',title:'Planting Advisory — West Africa',desc:'Optimal window opens in 14 days.',source:'SMAP',timestamp:new Date().toISOString()},
-  ]);
-  renderNDVIChart([{region:'S. America',ndvi:0.78},{region:'SE Asia',ndvi:0.74},{region:'N. America',ndvi:0.68},{region:'Europe',ndvi:0.64},{region:'W. Africa',ndvi:0.62},{region:'S. Asia',ndvi:0.56},{region:'E. Africa',ndvi:0.38},{region:'Oceania',ndvi:0.42},{region:'C. Asia',ndvi:0.35},{region:'M. East',ndvi:0.18}]);
-  renderSatellites([
-    {name:'Sentinel-2A',agency:'ESA / Copernicus',passTime:'06:42',coverage:'Sub-Saharan Africa',resolution:'10m',dataType:'Multispectral',status:'active'},
-    {name:'Sentinel-2B',agency:'ESA / Copernicus',passTime:'09:15',coverage:'South Asia',resolution:'10m',dataType:'Multispectral',status:'active'},
-    {name:'Sentinel-1A',agency:'ESA / Copernicus',passTime:'07:30',coverage:'West Africa',resolution:'10m',dataType:'SAR C-band',status:'active'},
-    {name:'Landsat-9',agency:'NASA / USGS',passTime:'10:30',coverage:'Latin America',resolution:'30m',dataType:'OLI-2 / TIRS-2',status:'active'},
-    {name:'Landsat-8',agency:'NASA / USGS',passTime:'12:10',coverage:'East Africa',resolution:'30m',dataType:'OLI / TIRS',status:'active'},
-    {name:'MODIS (Terra)',agency:'NASA',passTime:'11:45',coverage:'Global',resolution:'250m',dataType:'36-Band Spectral',status:'active'},
-    {name:'MODIS (Aqua)',agency:'NASA',passTime:'14:00',coverage:'Global',resolution:'250m',dataType:'36-Band Spectral',status:'active'},
-    {name:'SMAP',agency:'NASA JPL',passTime:'14:20',coverage:'Central Asia',resolution:'9km',dataType:'Soil Moisture',status:'scheduled'},
-    {name:'GRACE-FO',agency:'NASA / DLR',passTime:'16:55',coverage:'Africa',resolution:'300km',dataType:'Gravity / Groundwater',status:'scheduled'}
-  ]);
-  renderWaterGauges();
-  renderFoodQuick();
-  loadReliefWebNews();
-}
-
-// ─── LIVE MULTI-SOURCE NEWS FEED ───
-async function loadReliefWebNews() {
+// ─── NEWS PANEL RENDERER ─────────────────────────────────────
+function renderNewsPanel(articles) {
   const panel = document.getElementById('newsPanel');
   if (!panel) return;
-  panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture & Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">Loading...</span></div><div style="padding:16px;color:var(--text-muted);font-size:13px">Fetching latest global reports...</div>';
-  
-  const allNews = [];
-  
-  // Source 1: ReliefWeb Reports — Food & Nutrition
-  try {
-    const r1 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Food and Nutrition&limit=8&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
-    const d1 = await r1.json();
-    if (d1 && d1.data) d1.data.forEach(r => allNews.push({ ...r.fields, tag: '🛡️ Food Security' }));
-  } catch(e) { console.warn('ReliefWeb food fetch err', e); }
-  
-  // Source 2: ReliefWeb Reports — Agriculture
-  try {
-    const r2 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Agriculture&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
-    const d2 = await r2.json();
-    if (d2 && d2.data) d2.data.forEach(r => allNews.push({ ...r.fields, tag: '🌾 Agriculture' }));
-  } catch(e) { console.warn('ReliefWeb agri fetch err', e); }
 
-  // Source 3: ReliefWeb Reports — Water
-  try {
-    const r3 = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo&filter[field]=theme.name&filter[value]=Water Sanitation Hygiene&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
-    const d3 = await r3.json();
-    if (d3 && d3.data) d3.data.forEach(r => allNews.push({ ...r.fields, tag: '💧 Water' }));
-  } catch(e) { console.warn('ReliefWeb water fetch err', e); }
-
-  // Deduplicate by title
-  const seen = new Set();
-  const unique = allNews.filter(n => { if (seen.has(n.title)) return false; seen.add(n.title); return true; });
-  
-  // Sort by date (newest first)
-  unique.sort((a, b) => new Date(b.date?.created || 0) - new Date(a.date?.created || 0));
-
-  if (unique.length === 0) {
-    panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live News</h3><span class="panel-badge">Offline</span></div><div style="padding:16px;font-size:13px;color:var(--text-muted)">Unable to load live news. Check your connection.</div>';
+  if (!articles || articles.length === 0) {
+    panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live News</h3><span class="panel-badge">No data</span></div><div style="padding:16px;font-size:13px;color:var(--text-muted)">No news articles available right now.</div>';
     return;
   }
 
-  const tagColors = { '🛡️ Food Security': 'var(--accent-red)', '🌾 Agriculture': 'var(--accent-green)', '💧 Water': 'var(--accent-blue)' };
+  const tagColors = {
+    'Food Security': '#e53e3e',
+    'Agriculture':   '#38a169',
+    'Water':         '#3182ce',
+    'Disaster':      '#d69e2e',
+    'FAO':           '#2f855a',
+    'WFP':           '#c05621'
+  };
 
-  const items = unique.slice(0, 15).map(f => {
-    const date = f.date?.created ? new Date(f.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Today';
-    const source = f.source && f.source.length > 0 ? f.source[0].name : 'ReliefWeb';
-    const countries = f.country && f.country.length > 0 ? f.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
-    const tc = tagColors[f.tag] || 'var(--accent-blue)';
+  const items = articles.map(a => {
+    const date = a.date?.created ? new Date(a.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Today';
+    const source = a.source && a.source.length > 0 ? a.source[0].name : (a.sourceName || 'Global');
+    const countries = a.country && a.country.length > 0 ? a.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
+    const tc = tagColors[a.tag] || '#3182ce';
     return `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
-      <div style="flex-shrink:0;margin-top:2px"><span style="background:${tc};color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap">${f.tag}</span></div>
+      <div style="flex-shrink:0;margin-top:3px"><span style="background:${tc};color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;white-space:nowrap">${a.tag || 'News'}</span></div>
       <div style="flex:1;min-width:0">
-        <a href="${f.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:3px;line-height:1.3">${f.title}</a>
-        <div style="font-size:10px;color:var(--text-muted)">📍 ${countries} · 🏢 ${source} · 📅 ${date}</div>
+        <a href="${a.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:3px;line-height:1.35;transition:color .2s" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--text-primary)'">${a.title}</a>
+        <div style="font-size:10px;color:var(--text-muted)">📍 ${countries} &nbsp;·&nbsp; 🏢 ${source} &nbsp;·&nbsp; 📅 ${date}</div>
       </div>
     </div>`;
   }).join('');
 
-  panel.innerHTML = `<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture & Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">
-    ${unique.length} Reports</span></div>${items}`;
+  panel.innerHTML = `<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture &amp; Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">${articles.length} Reports</span></div>${items}`;
 }
+
+
 
 function renderStats(s) {
   document.getElementById('statsGrid').innerHTML = `
