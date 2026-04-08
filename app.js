@@ -347,28 +347,50 @@ function initMapOnce() {
   map = L.map('worldMap', { zoomControl: false }).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   
-  // Google Earth Engine Style Base Layers (High Res)
-  const tileOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
-  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
-  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
-  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
-  const gmapHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
+  // Create dedicated labels pane so names always render ON TOP of country polygons
+  map.createPane('labels');
+  map.getPane('labels').style.zIndex = 650;
+  map.getPane('labels').style.pointerEvents = 'none';
 
-  let currentLayer = gmapTerrain; // Default to Map + Terrain
-  currentLayer.addTo(map);
+  // Google Earth Engine Style Base Layers (High Res)
+  const baseOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
+  const labelOptions = { ...baseOptions, pane: 'labels' };
+  
+  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  // Transparent labels & roads overlay
+  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', labelOptions);
+
+  let currentBase = gmapTerrain;
+  let currentLabels = gmapLabelsOverlay;
+  currentBase.addTo(map);
+  currentLabels.addTo(map);
 
   function updateGoogleLayer() {
-    map.removeLayer(currentLayer);
+    if(map.hasLayer(currentBase)) map.removeLayer(currentBase);
+    if(map.hasLayer(currentLabels)) map.removeLayer(currentLabels);
+    
     const isMap = document.getElementById('gbtn-map').classList.contains('active');
     const terrain = document.getElementById('gchk-terrain').checked;
     const labels = document.getElementById('gchk-labels').checked;
     
     if (isMap) {
-      currentLayer = terrain ? gmapTerrain : gmapStreets;
+      currentBase = terrain ? gmapTerrain : gmapStreets;
     } else {
-      currentLayer = labels ? gmapHybrid : gmapSat;
+      currentBase = gmapSat;
     }
-    currentLayer.addTo(map);
+    
+    currentBase.addTo(map);
+    
+    // In Satellite mode, add labels overlay cleanly if checked. 
+    // In Map mode, add overlay to pierce through GeoJSON colors for bright crisp names.
+    if (!isMap && labels) {
+      currentLabels.addTo(map);
+    } else if (isMap) {
+      currentLabels.addTo(map);
+    }
+    
     if (window.geoLayerRef) { window.geoLayerRef.bringToFront(); }
   }
 
@@ -408,7 +430,7 @@ function initMapOnce() {
           weight: 1.2,
           opacity: 0.8,
           color: '#ffffff',
-          fillOpacity: 0.25
+          fillOpacity: 0.35 // Restored to a richer color since names are now separated
         };
       }
 
