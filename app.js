@@ -347,11 +347,12 @@ function initMapOnce() {
   map = L.map('worldMap', { zoomControl: false }).setView([20, 0], 2);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
   
-  // Google Earth Engine Style Base Layers
-  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
-  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
-  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
-  const gmapHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
+  // Google Earth Engine Style Base Layers (High Res)
+  const tileOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
+  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
+  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
+  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
+  const gmapHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}&scale=2', tileOptions);
 
   let currentLayer = gmapTerrain; // Default to Map + Terrain
   currentLayer.addTo(map);
@@ -404,16 +405,16 @@ function initMapOnce() {
       function style(feature) {
         return {
           fillColor: getColor(feature.properties.name),
-          weight: 0.8,
-          opacity: 1,
+          weight: 1.2,
+          opacity: 0.8,
           color: '#ffffff',
-          fillOpacity: 0.85
+          fillOpacity: 0.25
         };
       }
 
       function highlightFeature(e) {
         var layer = e.target;
-        layer.setStyle({ weight: 2, color: '#f59d1f', fillOpacity: 1 });
+        layer.setStyle({ weight: 2.5, color: '#f59d1f', fillOpacity: 0.5 });
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { layer.bringToFront(); }
       }
 
