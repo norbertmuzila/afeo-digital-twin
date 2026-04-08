@@ -2,7 +2,7 @@
 //  AfEO Model — Frontend Application
 // ════════════════════════════════════════
 
-const API = '/api';
+const API = 'https://afeo-digital-twin-production.up.railway.app/api';
 let authToken = null;
 let currentUser = null;
 

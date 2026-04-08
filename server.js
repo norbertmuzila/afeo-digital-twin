@@ -12,7 +12,7 @@ const jwt      = require('jsonwebtoken');
 const compression = require('compression');
 
 const app  = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'wafeo-secret-2024-change-in-production';
 
 // ─── CORS — allow GitHub Pages frontend ─────────────────────
