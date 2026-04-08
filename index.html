@@ -171,6 +171,8 @@
           </div>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
+        <!-- Live News Feed -->
+        <div class="panel full" id="newsPanel"></div>
         <div class="grid-2">
           <div class="panel" id="alertsPanel"></div>
           <div class="panel" id="ndviPanel"></div>
@@ -213,11 +215,148 @@
     </div>
 
     <!-- ═══ OTHER PAGES ═══ -->
-    <div class="page" id="pg-crop-monitoring"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">🛰️</span><h3>Crop Monitoring Module</h3><p>Real-time NDVI time series, phenological stage tracking, and crop classification maps from Sentinel-2 and MODIS. Historical anomaly detection across all monitored agricultural zones worldwide.</p></div></div></div></div>
-    <div class="page" id="pg-soil-analysis"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">🧪</span><h3>Soil Analysis Module</h3><p>Soil moisture maps from SMAP and Sentinel-1 SAR. Texture classification, organic carbon estimation, and nutrient deficiency detection for precision irrigation scheduling.</p></div></div></div></div>
-    <div class="page" id="pg-drought-monitor"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">🏜️</span><h3>Drought Monitor</h3><p>Combined SPI, SPEI, and VCI drought indices. Flash drought detection, seasonal forecasting, and impact assessment on agriculture and water supply. 3 active severe drought alerts across the Horn of Africa.</p></div></div></div></div>
-    <div class="page" id="pg-early-warning"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚠️</span><h3>Early Warning System</h3><p>Predictive analytics combining satellite EO, weather models, market prices, and conflict data. 90-day food security forecasts with IPC-compatible classifications for humanitarian response planning.</p></div></div></div></div>
-    <div class="page" id="pg-reports"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">📋</span><h3>Reports & Analytics</h3><p>Generate custom reports for any region, time period, and thematic area. Export as PDF, CSV, or GeoTIFF. Automated weekly briefings for government agencies and humanitarian organizations.</p></div></div></div></div>
+    <div class="page" id="pg-crop-monitoring"><div class="pg-pad">
+      <div class="panel"><div class="panel-hdr"><h3>🛰️ Crop Monitoring — Sentinel-2 & MODIS</h3><span class="panel-badge" style="background:var(--accent-green)">Live</span></div>
+        <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          <p><strong>Data Sources:</strong> ESA Sentinel-2 (10m multispectral, 5-day revisit), NASA MODIS (250m–1km, daily), USGS Landsat 8/9 (30m, 16-day revisit).</p>
+          <p><strong>Current Coverage:</strong> Real-time NDVI time series across 196 monitored agricultural zones. Phenological stage tracking: Seeding → Emergence → Flowering → Grain Fill → Harvest.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0">
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-green)">
+              <div style="font-size:11px;color:var(--text-muted)">Sentinel-2 Revisit</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-green)">5 days</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-blue)">
+              <div style="font-size:11px;color:var(--text-muted)">MODIS Daily Passes</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-blue)">2/day</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-cyan)">
+              <div style="font-size:11px;color:var(--text-muted)">Landsat Resolution</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-cyan)">30m</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-amber)">
+              <div style="font-size:11px;color:var(--text-muted)">Anomaly Detection</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-amber)">20yr baseline</div>
+            </div>
+          </div>
+          <p><strong>Stress Diagnosis:</strong> Water stress (blue), Nutrient stress (yellow), Heat stress (red), Pest risk (orange). Crop-specific alerts: “Wheat at flowering stage, water critical for grain fill.”</p>
+          <p><strong>Copernicus Integration:</strong> Open Access Hub for Sentinel-1 SAR (soil moisture, flood mapping) and Sentinel-2 optical imagery. Free registration required.</p>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="page" id="pg-soil-analysis"><div class="pg-pad">
+      <div class="panel"><div class="panel-hdr"><h3>🧪 Soil Analysis — SMAP & Sentinel-1 SAR</h3><span class="panel-badge" style="background:var(--accent-blue)">SMAP</span></div>
+        <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          <p><strong>Data Sources:</strong> NASA SMAP (9km global soil moisture, daily), ESA Sentinel-1 SAR (10m, 6-day revisit), GRACE-FO (300km groundwater storage, monthly).</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0">
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-blue)">
+              <div style="font-size:11px;color:var(--text-muted)">Surface Moisture</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-blue)">45%</div>
+              <div style="font-size:10px;color:var(--accent-amber)">Approaching dry stress</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-red)">
+              <div style="font-size:11px;color:var(--text-muted)">Root Zone Status</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-red)">Stressed</div>
+              <div style="font-size:10px;color:var(--accent-red)">7 days to permanent damage</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-amber)">
+              <div style="font-size:11px;color:var(--text-muted)">GRACE Anomaly</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-amber)">−5.2 cm</div>
+              <div style="font-size:10px;color:var(--text-muted)">Declining 3cm/yr</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-green)">
+              <div style="font-size:11px;color:var(--text-muted)">Recharge Potential</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-green)">Moderate</div>
+              <div style="font-size:10px;color:var(--text-muted)">Highland zones only</div>
+            </div>
+          </div>
+          <p><strong>Irrigation Recommendation:</strong> URGENT — Begin irrigation if possible. Next window: 7 days before permanent crop damage.</p>
+          <p><strong>Copernicus Soil Moisture:</strong> Sentinel-1 C-band SAR for high-resolution soil moisture estimation. Texture classification, organic carbon estimation, and nutrient deficiency mapping.</p>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="page" id="pg-drought-monitor"><div class="pg-pad">
+      <div class="panel"><div class="panel-hdr"><h3>🏜️ Drought Monitor — Multi-Index Analysis</h3><span class="panel-badge crit">3 Severe Alerts</span></div>
+        <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          <p><strong>Indices Used:</strong> Standardized Precipitation Index (SPI), Standardized Precipitation Evapotranspiration Index (SPEI), Vegetation Condition Index (VCI).</p>
+          <p><strong>Data Sources:</strong> NOAA GPM (0.1°, 30-min), CHIRPS (0.05°, daily/monthly), ERA5 Copernicus Reanalysis (0.25°, 1950–present), IRI Seasonal Forecasts.</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:16px 0">
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-red)">
+              <div style="font-size:11px;color:var(--text-muted)">SPI (1-month)</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-red)">−1.8</div>
+              <div style="font-size:10px">Severe Drought</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-amber)">
+              <div style="font-size:11px;color:var(--text-muted)">Rainfall Anomaly</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-amber)">−35%</div>
+              <div style="font-size:10px">Below normal</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid var(--accent-red)">
+              <div style="font-size:11px;color:var(--text-muted)">30-Day Forecast</div>
+              <div style="font-size:18px;font-weight:700;color:var(--accent-red)">Below Normal</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;border-left:3px solid #d73027">
+              <div style="font-size:11px;color:var(--text-muted)">90-Day Outlook</div>
+              <div style="font-size:18px;font-weight:700;color:#d73027">Severe Risk</div>
+            </div>
+          </div>
+          <p><strong>Active Severe Zones:</strong> Horn of Africa (Ethiopia, Kenya, Somalia) — Rainfall deficit exceeding 60%. Flash drought detection active. Pasture and crop conditions severely degraded.</p>
+          <p><strong>Water Balance:</strong> Supply 1,200M m³ vs Demand 1,200M m³ — Deficit risk HIGH in dry season.</p>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="page" id="pg-early-warning"><div class="pg-pad">
+      <div class="panel"><div class="panel-hdr"><h3>⚠️ Early Warning System — 90-Day Forecast</h3><span class="panel-badge" style="background:var(--accent-amber)">Active</span></div>
+        <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          <p><strong>Predictive Engine:</strong> Combines satellite EO (Sentinel, MODIS, SMAP), weather forecasts (NOAA CFS, IRI), commodity prices (WFP), and conflict data (ACLED) for IPC-compatible 90-day forecasts.</p>
+          <div style="background:var(--bg-deep);border-left:4px solid var(--accent-red);padding:14px;border-radius:6px;margin:16px 0">
+            <div style="font-weight:700;color:var(--accent-red);margin-bottom:6px">🚨 ALERT: Acute Water Stress — Horn of Africa</div>
+            <div style="font-size:12px;margin-bottom:8px"><strong>Cause:</strong> Below-normal March rains + above-average temperatures</div>
+            <div style="font-size:12px;margin-bottom:8px"><strong>Evidence:</strong> SPI −1.8, NDVI down 15% YoY, water table drop 30cm (GRACE-FO)</div>
+            <div style="font-size:12px;margin-bottom:8px"><strong>Impact (60 days):</strong> Crop failure risk HIGH (65% probability). 2.3M pastoralists affected. IPC Phase 3–4 expected by July.</div>
+            <div style="font-size:12px"><strong>Action:</strong> Scale up emergency water & food transfers. Pre-position supplies in pastoral zones. Deploy field teams.</div>
+          </div>
+          <div style="background:var(--bg-deep);border-left:4px solid var(--accent-amber);padding:14px;border-radius:6px;margin:12px 0">
+            <div style="font-weight:700;color:var(--accent-amber);margin-bottom:6px">⚠️ WATCH: Yield Loss — South Asia Wheat Belt</div>
+            <div style="font-size:12px;margin-bottom:8px"><strong>Evidence:</strong> NDVI anomaly −0.18, soil moisture below 25% (SMAP), temperature +3°C above normal</div>
+            <div style="font-size:12px"><strong>Forecast:</strong> 20–35% yield loss if current conditions persist. Shift to drought-tolerant varieties advised. Food price spike expected in 4 weeks.</div>
+          </div>
+          <p><strong>Data Sources:</strong> NOAA CFS (9-month lead), IRI Seasonal Forecasts, Copernicus ERA5 Reanalysis, WFP HungerMap Live, FEWS NET.</p>
+        </div>
+      </div>
+    </div></div>
+
+    <div class="page" id="pg-reports"><div class="pg-pad">
+      <div class="panel"><div class="panel-hdr"><h3>📋 Reports & Analytics</h3><span class="panel-badge">Automated</span></div>
+        <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          <p><strong>Available Reports:</strong> Weekly crisis briefings, monthly trend summaries, custom region/theme reports. Formats: PDF (visual), CSV (data), GeoTIFF (spatial).</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0">
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;cursor:pointer">
+              <div style="font-size:18px;margin-bottom:6px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">Weekly Food Security Brief</div>
+              <div style="font-size:11px;color:var(--text-muted)">Auto-generated from IPC + WFP + NDVI data. Last generated: Today.</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;cursor:pointer">
+              <div style="font-size:18px;margin-bottom:6px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">Monthly Water Resources Summary</div>
+              <div style="font-size:11px;color:var(--text-muted)">GRACE + CHIRPS + reservoir data. Covers 196 regions.</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;cursor:pointer">
+              <div style="font-size:18px;margin-bottom:6px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">Crop Season Outlook</div>
+              <div style="font-size:11px;color:var(--text-muted)">Yield forecasts vs 5-year average from Sentinel-2 + weather models.</div>
+            </div>
+            <div style="background:var(--bg-deep);padding:12px;border-radius:8px;cursor:pointer">
+              <div style="font-size:18px;margin-bottom:6px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">Drought Early Warning</div>
+              <div style="font-size:11px;color:var(--text-muted)">SPI/SPEI/VCI indices. 90-day regional forecasts with confidence scores.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div></div>
     <div class="page" id="pg-settings"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚙️</span><h3>Platform Settings</h3><p>Manage satellite data sources, alert thresholds, notification preferences, user roles, and API integrations. Configure custom NDVI thresholds for your specific crop types and regions.</p></div></div></div></div>
     
     <!-- ═══ FLOATING AI WIDGET ═══ -->

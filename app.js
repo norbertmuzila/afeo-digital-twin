@@ -161,9 +161,52 @@ function loadDashboardDemo() {
     {severity:'info',title:'Planting Advisory — West Africa',desc:'Optimal window opens in 14 days.',source:'SMAP',timestamp:new Date().toISOString()},
   ]);
   renderNDVIChart([{region:'S. America',ndvi:0.78},{region:'SE Asia',ndvi:0.74},{region:'N. America',ndvi:0.68},{region:'Europe',ndvi:0.64},{region:'W. Africa',ndvi:0.62},{region:'S. Asia',ndvi:0.56},{region:'E. Africa',ndvi:0.38},{region:'Oceania',ndvi:0.42},{region:'C. Asia',ndvi:0.35},{region:'M. East',ndvi:0.18}]);
-  renderSatellites([{name:'Sentinel-2A',agency:'ESA',passTime:'06:42',coverage:'Sub-Saharan Africa',resolution:'10m',dataType:'Multispectral',status:'active'},{name:'Sentinel-2B',agency:'ESA',passTime:'09:15',coverage:'South Asia',resolution:'10m',dataType:'Multispectral',status:'active'},{name:'Landsat-9',agency:'NASA/USGS',passTime:'10:30',coverage:'Latin America',resolution:'30m',dataType:'OLI-2',status:'active'},{name:'MODIS',agency:'NASA',passTime:'11:45',coverage:'Global',resolution:'250m',dataType:'Spectral',status:'active'},{name:'SMAP',agency:'NASA',passTime:'14:20',coverage:'C. Asia',resolution:'9km',dataType:'Soil',status:'scheduled'},{name:'GRACE-FO',agency:'NASA/DLR',passTime:'16:55',coverage:'Africa',resolution:'300km',dataType:'Gravity',status:'scheduled'}]);
+  renderSatellites([
+    {name:'Sentinel-2A',agency:'ESA / Copernicus',passTime:'06:42',coverage:'Sub-Saharan Africa',resolution:'10m',dataType:'Multispectral',status:'active'},
+    {name:'Sentinel-2B',agency:'ESA / Copernicus',passTime:'09:15',coverage:'South Asia',resolution:'10m',dataType:'Multispectral',status:'active'},
+    {name:'Sentinel-1A',agency:'ESA / Copernicus',passTime:'07:30',coverage:'West Africa',resolution:'10m',dataType:'SAR C-band',status:'active'},
+    {name:'Landsat-9',agency:'NASA / USGS',passTime:'10:30',coverage:'Latin America',resolution:'30m',dataType:'OLI-2 / TIRS-2',status:'active'},
+    {name:'Landsat-8',agency:'NASA / USGS',passTime:'12:10',coverage:'East Africa',resolution:'30m',dataType:'OLI / TIRS',status:'active'},
+    {name:'MODIS (Terra)',agency:'NASA',passTime:'11:45',coverage:'Global',resolution:'250m',dataType:'36-Band Spectral',status:'active'},
+    {name:'MODIS (Aqua)',agency:'NASA',passTime:'14:00',coverage:'Global',resolution:'250m',dataType:'36-Band Spectral',status:'active'},
+    {name:'SMAP',agency:'NASA JPL',passTime:'14:20',coverage:'Central Asia',resolution:'9km',dataType:'Soil Moisture',status:'scheduled'},
+    {name:'GRACE-FO',agency:'NASA / DLR',passTime:'16:55',coverage:'Africa',resolution:'300km',dataType:'Gravity / Groundwater',status:'scheduled'}
+  ]);
   renderWaterGauges();
   renderFoodQuick();
+  loadReliefWebNews();
+}
+
+// ─── LIVE RELIEFWEB NEWS FEED ───
+async function loadReliefWebNews() {
+  const panel = document.getElementById('newsPanel');
+  if (!panel) return;
+  panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News — Water, Agriculture & Food Security</h3><span class="panel-badge" style="background:var(--accent-blue)">ReliefWeb API</span></div><div style="padding:16px;color:var(--text-muted);font-size:13px">Loading latest reports...</div>';
+  
+  try {
+    const res = await fetch('https://api.reliefweb.int/v1/reports?appname=wafeo-digital-twin&filter[operator]=AND&filter[conditions][0][field]=theme.name&filter[conditions][0][value][]=Food and Nutrition&filter[conditions][0][value][]=Water Sanitation Hygiene&filter[conditions][0][value][]=Agriculture&filter[conditions][0][operator]=OR&limit=6&sort[]=date:desc&fields[include][]=title&fields[include][]=date.created&fields[include][]=source.name&fields[include][]=country.name&fields[include][]=url');
+    const data = await res.json();
+    
+    if (data && data.data && data.data.length > 0) {
+      const items = data.data.map(r => {
+        const f = r.fields;
+        const date = new Date(f.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+        const source = f.source && f.source.length > 0 ? f.source[0].name : 'ReliefWeb';
+        const countries = f.country && f.country.length > 0 ? f.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
+        return `<div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start">
+          <div style="font-size:18px;flex-shrink:0">📰</div>
+          <div style="flex:1;min-width:0">
+            <a href="${f.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:4px">${f.title}</a>
+            <div style="font-size:11px;color:var(--text-muted)">📍 ${countries} · 🏢 ${source} · 📅 ${date}</div>
+          </div>
+        </div>`;
+      }).join('');
+      panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News — Water, Agriculture & Food Security</h3><span class="panel-badge" style="background:var(--accent-blue)">ReliefWeb Live</span></div>' + items;
+    }
+  } catch (err) {
+    console.error('ReliefWeb news fetch error:', err);
+    panel.innerHTML = '<div class="panel-hdr"><h3>📰 Live Crisis News</h3><span class="panel-badge">Offline</span></div><div style="padding:16px;font-size:13px;color:var(--text-muted)">Unable to load live news. Check connection.</div>';
+  }
 }
 
 function renderStats(s) {
