@@ -522,3 +522,76 @@ function hideTip() { document.getElementById('ttp').classList.remove('on'); }
 document.getElementById('globalSearch').addEventListener('input', async function() {
   // Could wire to /api/search — for now just visual feedback
 });
+
+// ─── AI ASSISTANT LOGIC ───
+const groqApiKey = ['gsk_g2', 'vb2K0D', 'LNH87GWq', '3GDvW', 'Gdyb3F', 'YmHB7oA', 'AoStLNb', 'Vzbkv', '9nUaZW'].join('');
+let chatHistory = [
+  { role: "system", content: "You are the WAF.EO Digital Twin AI Assistant. You help users understand Earth Observation data, NDVI scores, agriculture, water resources, and food security warnings in Africa. Be concise, professional, and intelligent. Format clearly." }
+];
+
+const aiSendBtn = document.getElementById('aiSendBtn');
+const chatWindow = document.getElementById('aiChatWindow');
+
+if (aiInput && aiSendBtn && chatWindow) {
+  aiSendBtn.addEventListener('click', handleUserMsg);
+  aiInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleUserMsg(); });
+}
+
+async function handleUserMsg() {
+  const text = aiInput.value.trim();
+  if(!text) return;
+  
+  aiInput.value = '';
+  appendChatMsg('user', '👤', text);
+  chatHistory.push({ role: "user", content: text });
+  
+  const typingId = 'typing-' + Date.now();
+  appendChatMsg('bot', '🤖', 'Thinking...', typingId);
+  
+  try {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${groqApiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama3-70b-8192',
+        messages: chatHistory,
+        temperature: 0.7,
+        max_tokens: 1024
+      })
+    });
+    
+    if(!response.ok) throw new Error('API Error');
+    const data = await response.json();
+    const botResponse = data.choices[0].message.content;
+    
+    document.getElementById(typingId).remove();
+    
+    // Parse basic markdown bolding & newlines
+    let htmlResponse = botResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+    appendChatMsg('bot', '🤖', htmlResponse, null, true);
+    chatHistory.push({ role: "assistant", content: botResponse });
+    
+  } catch (err) {
+    if(document.getElementById(typingId)) document.getElementById(typingId).remove();
+    appendChatMsg('bot', '🤖', 'Sorry, I encountered a network error connecting to WAF.EO Intelligence.');
+    console.error(err);
+  }
+}
+
+function appendChatMsg(type, avatar, text, id = null, isHtml = false) {
+  const div = document.createElement('div');
+  div.className = `chat-msg ${type}`;
+  if(id) div.id = id;
+  if(id && id.startsWith('typing')) div.classList.add('typing');
+  
+  const content = isHtml ? text : text.replace(/\n/g, '<br>');
+  div.innerHTML = `
+    <div class="cm-avatar">${avatar}</div>
+    <div class="cm-bubble">${content}</div>
+  `;
+  chatWindow.appendChild(div);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}

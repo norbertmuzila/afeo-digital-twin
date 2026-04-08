@@ -93,6 +93,26 @@
         <div class="nav-group-label">System</div>
         <div class="nav-link" data-page="reports"><span class="ni">📋</span>Reports</div>
         <div class="nav-link" data-page="settings"><span class="ni">⚙️</span>Settings</div>
+        
+        <!-- The SVG Action Button (Floating Panel Trigger) -->
+        <div id="aiFabBtn" class="ai-fab" style="margin: 12px 16px;">
+          <div class="fab-icon-box" style="margin-right: 8px;">
+            <svg viewBox="0 0 100 100" width="30" height="30">
+              <circle cx="50" cy="50" r="45" fill="#1b6033"/>
+              <circle cx="50" cy="50" r="33" fill="none" stroke="#2a8247" stroke-width="2"/>
+              <path d="M50 32 Q68 50 50 68 Q32 50 50 32" fill="#5ee289"/>
+              <circle cx="50" cy="50" r="7" fill="#1b6033"/>
+              <circle cx="50" cy="50" r="3" fill="#5ee289"/>
+              <circle cx="37" cy="68" r="5" fill="#5ee289"/>
+            </svg>
+          </div>
+          <div class="fab-text">
+            <div class="fab-ask">ASK</div>
+            <div class="fab-wafeo">
+              <span class="fw-waf" style="font-size:14px;">WAF</span> <span class="fw-eo" style="font-size:14px;">EO</span> <span class="fw-ai" style="font-size:9px; padding:1px 4px;">AI</span>
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
     <div class="sb-user">
@@ -220,28 +240,6 @@
           <input type="text" id="aiInput" placeholder="Ask securely..." style="flex:1; padding: 10px 14px; border-radius: 20px; border: 1px solid #dcdcdc; outline:none; font-family:inherit; font-size: 13px; background: #f9f9f9;">
           <button id="aiSendBtn" style="padding: 10px 16px; border-radius: 20px; border:none; background: var(--accent-blue); color:#fff; font-weight:bold; cursor:pointer; transition: background 0.2s;">Send ⮞</button>
         </div>
-      </div>
-
-      <!-- The SVG Floating Action Button -->
-      <div id="aiFabBtn" class="ai-fab">
-        <div class="fab-icon-box">
-          <svg viewBox="0 0 100 100" width="38" height="38">
-            <circle cx="50" cy="50" r="45" fill="#1b6033"/>
-            <circle cx="50" cy="50" r="33" fill="none" stroke="#2a8247" stroke-width="2"/>
-            <path d="M50 32 Q68 50 50 68 Q32 50 50 32" fill="#5ee289"/>
-            <circle cx="50" cy="50" r="7" fill="#1b6033"/>
-            <circle cx="50" cy="50" r="3" fill="#5ee289"/>
-            <circle cx="37" cy="68" r="5" fill="#5ee289"/>
-          </svg>
-        </div>
-        <div class="fab-text">
-          <div class="fab-ask">ASK</div>
-          <div class="fab-wafeo">
-            <span class="fw-waf">WAF</span> <span class="fw-eo">EO</span> <span class="fw-ai">AI</span>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
