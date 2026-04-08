@@ -1,30 +1,90 @@
 [
   {
-    "id": 1,
+    "id": "alert-001",
     "severity": "critical",
     "title": "Severe Drought — Horn of Africa",
-    "desc": "Rainfall deficit exceeding 60% across Somalia, Ethiopia. Estimated 4.2M affected.",
-    "source": "Sentinel-3 OLCI"
+    "desc": "Rainfall deficit exceeding 60% across Somalia, Ethiopia and northern Kenya. SPI index at -2.1, worst in 40 years.",
+    "source": "Sentinel-3 OLCI / CHIRPS",
+    "region": "East Africa",
+    "countries": ["Somalia","Ethiopia","Kenya"],
+    "ndviAnomaly": -0.28,
+    "timestamp": "2024-04-08T06:00:00.000Z"
   },
   {
-    "id": 2,
+    "id": "alert-002",
+    "severity": "critical",
+    "title": "IPC Phase 4 Alert — Sudan",
+    "desc": "6.1M people facing emergency food insecurity in North Darfur and Kordofan regions. Conflict and displacement remain primary drivers.",
+    "source": "WFP / IPC",
+    "region": "East Africa",
+    "countries": ["Sudan"],
+    "ndviAnomaly": -0.19,
+    "timestamp": "2024-04-07T12:00:00.000Z"
+  },
+  {
+    "id": "alert-003",
     "severity": "warning",
-    "title": "Crop Stress Detected — Punjab, India",
-    "desc": "NDVI anomaly -0.18 in wheat belt. Possible water stress in 320k hectares.",
-    "source": "Landsat-9"
+    "title": "Crop Stress — Punjab Wheat Belt, India",
+    "desc": "NDVI anomaly of −0.18 detected across 2.4M hectares of wheat. Above-average temperatures (+3°C) causing accelerated grain fill.",
+    "source": "Landsat-9 OLI-2",
+    "region": "South Asia",
+    "countries": ["India","Pakistan"],
+    "ndviAnomaly": -0.18,
+    "timestamp": "2024-04-08T04:30:00.000Z"
   },
   {
-    "id": 3,
+    "id": "alert-004",
     "severity": "warning",
-    "title": "Reservoir Low — Lake Kariba, Zambia",
-    "desc": "Water level at 34% capacity. Down 12% from seasonal average.",
-    "source": "GRACE-FO"
+    "title": "Reservoir Critical — Lake Kariba",
+    "desc": "Lake Kariba at 34% capacity following 3rd consecutive below-normal rainy season. Hydroelectric power generation reduced by 40%.",
+    "source": "GRACE-FO / Sentinel-2",
+    "region": "Southern Africa",
+    "countries": ["Zimbabwe","Zambia"],
+    "ndviAnomaly": -0.12,
+    "timestamp": "2024-04-06T09:00:00.000Z"
   },
   {
-    "id": 4,
+    "id": "alert-005",
+    "severity": "warning",
+    "title": "Flash Flood Risk — Bangladesh & Myanmar",
+    "desc": "Pre-monsoon heavy rainfall detected. 1.8M people in low-lying areas at risk. River gauges showing 180% of normal discharge.",
+    "source": "MODIS Terra / GPM",
+    "region": "South Asia",
+    "countries": ["Bangladesh","Myanmar"],
+    "ndviAnomaly": 0.08,
+    "timestamp": "2024-04-08T01:00:00.000Z"
+  },
+  {
+    "id": "alert-006",
+    "severity": "warning",
+    "title": "Locust Swarm Activity — Sahel Region",
+    "desc": "Desert locust breeding sites confirmed in Mali, Niger and Burkina Faso. Early-stage infestation affecting 480,000 ha of cropland.",
+    "source": "FAO DLIS / Sentinel-2",
+    "region": "West Africa",
+    "countries": ["Mali","Niger","Burkina Faso"],
+    "ndviAnomaly": -0.09,
+    "timestamp": "2024-04-05T14:00:00.000Z"
+  },
+  {
+    "id": "alert-007",
     "severity": "info",
-    "title": "Planting Season Advisory — West Africa",
-    "desc": "Optimal planting window opens in 14 days. Soil moisture conditions favorable.",
-    "source": "SMAP"
+    "title": "Planting Window Advisory — West Africa",
+    "desc": "Optimal sorghum and millet planting window opens in 14 days across the Sahel. Soil moisture conditions favourable following early rains.",
+    "source": "SMAP / IRI Forecast",
+    "region": "West Africa",
+    "countries": ["Senegal","Mali","Burkina Faso","Ghana"],
+    "ndviAnomaly": 0.04,
+    "timestamp": "2024-04-08T08:00:00.000Z"
+  },
+  {
+    "id": "alert-008",
+    "severity": "info",
+    "title": "Above-Normal Rains Forecast — East Africa",
+    "desc": "IRI 3-month forecast shows 65% probability of above-normal rainfall for Greater Horn of Africa. NDVI recovery expected by June.",
+    "source": "IRI / NOAA CFS",
+    "region": "East Africa",
+    "countries": ["Tanzania","Uganda","Rwanda","Kenya"],
+    "ndviAnomaly": 0.03,
+    "timestamp": "2024-04-07T16:00:00.000Z"
   }
 ]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "username": "admin",
+    "password": "wafeo2024",
+    "name": "System Admin",
+    "role": "admin",
+    "email": "admin@wafeo.org",
+    "region": "Global"
+  },
+  {
+    "id": 2,
+    "username": "farmer",
+    "password": "wafeo2024",
+    "name": "John Mwangi",
+    "role": "farmer",
+    "email": "j.mwangi@wafeo.org",
+    "region": "East Africa"
+  },
+  {
+    "id": 3,
+    "username": "policy",
+    "password": "wafeo2024",
+    "name": "Dr. Amara Diallo",
+    "role": "policy",
+    "email": "a.diallo@wafeo.org",
+    "region": "West Africa"
+  },
+  {
+    "id": 4,
+    "username": "researcher",
+    "password": "wafeo2024",
+    "name": "Prof. Lena Fischer",
+    "role": "researcher",
+    "email": "l.fischer@wafeo.org",
+    "region": "Europe"
+  }
+]

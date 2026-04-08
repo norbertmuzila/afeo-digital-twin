@@ -1,8 +1,22 @@
 {
-  "cropHealth": 78.4,
-  "cropHealthTrend": 3.2,
-  "waterScore": 62.1,
-  "waterTrend": -5.8,
-  "alerts": 14,
-  "satellites": 7
+  "cropHealth": {
+    "value": "78.4",
+    "change": "+3.2%",
+    "trend": "up"
+  },
+  "waterScore": {
+    "value": "62.1",
+    "change": "-5.8%",
+    "trend": "down"
+  },
+  "foodAlerts": {
+    "value": 14,
+    "change": "+4 critical",
+    "trend": "up"
+  },
+  "satellites": {
+    "value": "7/9",
+    "change": "Sentinel-2, Landsat-9",
+    "trend": "up"
+  }
 }
