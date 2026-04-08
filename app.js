@@ -345,23 +345,45 @@ function initMapOnce() {
   }
   
   map = L.map('worldMap', { zoomControl: false }).setView([20, 0], 2);
-  L.control.zoom({ position: 'topright' }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
   
-  // Base Layers
-  const cartoLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' });
-  const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' });
-  const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri' });
+  // Google Earth Engine Style Base Layers
+  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
+  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
+  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
+  const gmapHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { attribution: '&copy; Google' });
 
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  tileLayer = currentTheme === 'light' ? cartoLight : cartoDark;
-  tileLayer.addTo(map);
+  let currentLayer = gmapTerrain; // Default to Map + Terrain
+  currentLayer.addTo(map);
 
-  const baseMaps = {
-    "EMHARE Light": cartoLight,
-    "EMHARE Dark": cartoDark,
-    "Satellite Live": esriSat
-  };
-  L.control.layers(baseMaps).addTo(map);
+  function updateGoogleLayer() {
+    map.removeLayer(currentLayer);
+    const isMap = document.getElementById('gbtn-map').classList.contains('active');
+    const terrain = document.getElementById('gchk-terrain').checked;
+    const labels = document.getElementById('gchk-labels').checked;
+    
+    if (isMap) {
+      currentLayer = terrain ? gmapTerrain : gmapStreets;
+    } else {
+      currentLayer = labels ? gmapHybrid : gmapSat;
+    }
+    currentLayer.addTo(map);
+    if (window.geoLayerRef) { window.geoLayerRef.bringToFront(); }
+  }
+
+  // Bind UI Controls
+  document.getElementById('gbtn-map-click').addEventListener('click', () => {
+    document.getElementById('gbtn-map').classList.add('active');
+    document.getElementById('gbtn-sat').classList.remove('active');
+    updateGoogleLayer();
+  });
+  document.getElementById('gbtn-sat-click').addEventListener('click', () => {
+    document.getElementById('gbtn-sat').classList.add('active');
+    document.getElementById('gbtn-map').classList.remove('active');
+    updateGoogleLayer();
+  });
+  document.getElementById('gchk-terrain').addEventListener('change', updateGoogleLayer);
+  document.getElementById('gchk-labels').addEventListener('change', updateGoogleLayer);
 
   // Fetch GeoJSON for Choropleth mapping
   fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
@@ -411,6 +433,7 @@ function initMapOnce() {
       }
 
       geoJsonLayer = L.geoJSON(data, { style: style, onEachFeature: onEachFeature }).addTo(map);
+      window.geoLayerRef = geoJsonLayer;
     })
     .catch(err => console.error("GeoJSON error: ", err));
 

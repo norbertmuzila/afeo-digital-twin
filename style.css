@@ -570,3 +570,35 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .waf-f { color: #b97416 !important; }
 .waf-e { color: #8cb6df !important; }
 .waf-o { color: #9bbbd5 !important; }
+
+/* ─── GOOGLE MAPS CONTROLS ─── */
+.gmap-ctrls {
+  display: flex; font-family: Roboto, Arial, sans-serif;
+  box-shadow: rgba(0,0,0,0.3) 0px 1px 4px; border-radius: 2px; background: #fff;
+}
+.g-btn {
+  position: relative; cursor: pointer; color: #565656; font-size: 11px; font-weight: 500;
+}
+.g-btn-main {
+  padding: 9px 13px; transition: background 0.1s; display: flex; align-items: center; justify-content: center;
+}
+.g-btn:hover .g-btn-main, .g-btn-dropdown label:hover {
+  background: #f8f8f8; color: #333;
+}
+.g-btn.active .g-btn-main {
+  color: #000; font-weight: 600;
+}
+.g-btn-dropdown {
+  display: none; position: absolute; top: 100%; left: 0; background: #fff;
+  box-shadow: rgba(0,0,0,0.2) 0px 2px 4px; border: 1px solid #e6e6e6; border-top: none;
+  min-width: 100%; white-space: nowrap; margin-top: 0px; box-sizing: border-box; padding: 4px 0;
+}
+.g-btn:hover .g-btn-dropdown {
+  display: block;
+}
+.g-btn-dropdown label {
+  display: flex; align-items: center; gap: 8px; padding: 6px 13px; cursor: pointer; color: #333; font-weight: 400; user-select: none;
+}
+.g-btn-dropdown input {
+  margin: 0; cursor: pointer; accent-color: #1a73e8;
+}
