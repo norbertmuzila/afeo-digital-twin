@@ -1,8 +1,8 @@
 // ════════════════════════════════════════
-//  AfEO Model — Frontend Application
+//  WAFEO Platform — Frontend Application
 // ════════════════════════════════════════
 
-const API = 'https://afeo-digital-twin-production.up.railway.app/api';
+const API = 'https://wafeo-production.up.railway.app/api';
 let authToken = null;
 let currentUser = null;
 
@@ -110,7 +110,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     const el = document.getElementById('pg-' + pg);
     if (el) el.classList.add('active');
     document.getElementById('pgTitle').textContent = titleMap[pg] || pg;
-    document.getElementById('pgCrumb').textContent = 'AfEO / ' + (titleMap[pg] || pg);
+    document.getElementById('pgCrumb').textContent = 'WAFEO / ' + (titleMap[pg] || pg);
     if (pg === 'world-map') initMapOnce();
     if (pg === 'precision-farming') loadFields();
     if (pg === 'water-resources') loadWater();

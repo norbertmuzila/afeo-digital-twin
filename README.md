@@ -1,6 +1,6 @@
 # WAFEO Digital Twin — Backend API
 
-Full server-side backend for the [WAFEO Digital Twin](https://norbertmuzila.github.io/afeo-digital-twin/) platform, providing JWT-authenticated REST API endpoints for all dashboard panels.
+Full server-side backend for the [WAFEO Digital Twin](https://norbertmuzila.github.io/wafeo/) platform, providing JWT-authenticated REST API endpoints for all dashboard panels.
 
 ## 🚀 Deploy to Railway (Free — 5 Minutes)
 
@@ -10,7 +10,7 @@ Railway is a free cloud platform that connects directly to your GitHub repo and 
 Open **[railway.app](https://railway.app)** and click **"Login with GitHub"**.
 
 ### Step 2: Create a New Project
-Click **"New Project"** → **"Deploy from GitHub repo"** → select **`norbertmuzila/afeo-digital-twin`**.
+Click **"New Project"** → **"Deploy from GitHub repo"** → select **`norbertmuzila/wafeo`**.
 
 ### Step 3: Add Environment Variable
 In your Railway project, click **"Variables"** and add:
@@ -21,15 +21,15 @@ JWT_SECRET = wafeo-super-secret-your-unique-value-here
 
 ### Step 4: Get Your Backend URL
 After deploy finishes (< 2 minutes), click **"Settings"** → **"Generate Domain"**.
-You'll get a URL like: `https://afeo-digital-twin-production.up.railway.app`
+You'll get a URL like: `https://wafeo-production.up.railway.app`
 
 ### Step 5: Connect Frontend to Backend
 In `app.js`, line 5, change:
 ```js
 // Before:
-const API = '/api';
+const API = 'https://wafeo-production.up.railway.app/api';
 
-// After:
+// After (replace with your actual Railway URL):
 const API = 'https://YOUR-URL.railway.app/api';
 ```
 Then push to GitHub — your live site now uses real data! ✅
@@ -70,14 +70,14 @@ All authenticated endpoints require: `Authorization: Bearer <token>`
 ## 🏃 Run Locally
 
 ```bash
-git clone https://github.com/norbertmuzila/afeo-digital-twin.git
-cd afeo-digital-twin
+git clone https://github.com/norbertmuzila/wafeo.git
+cd wafeo
 npm install
 cp .env.example .env
 node server.js
 ```
 
-Then open: **http://localhost:3000**
+Then open: **http://localhost:8080**
 
 ---
 
@@ -88,4 +88,4 @@ Then open: **http://localhost:3000**
 - **Auth**: JSON Web Tokens (JWT)
 - **News**: ReliefWeb Open API (Water, Agriculture, Food Security)
 - **Hosting**: Railway (backend) + GitHub Pages (frontend)
-- **Data**: Curated JSON files + live external APIs
+- **URLs**: `https://norbertmuzila.github.io/wafeo` (frontend) · `https://wafeo-production.up.railway.app` (backend)
