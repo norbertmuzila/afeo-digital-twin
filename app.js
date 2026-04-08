@@ -12,6 +12,21 @@ let currentUser = null;
 document.getElementById('btnLogin').addEventListener('click', doLogin);
 document.getElementById('inPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
+const aiFabBtn = document.getElementById('aiFabBtn');
+const aiWidgetPanel = document.getElementById('aiWidgetPanel');
+const aiCloseBtn = document.getElementById('aiCloseBtn');
+const aiInput = document.getElementById('aiInput');
+
+if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
+  aiFabBtn.addEventListener('click', () => {
+    aiWidgetPanel.style.display = aiWidgetPanel.style.display === 'flex' ? 'none' : 'flex';
+    if(aiWidgetPanel.style.display === 'flex') aiInput.focus();
+  });
+  aiCloseBtn.addEventListener('click', () => {
+    aiWidgetPanel.style.display = 'none';
+  });
+}
+
 async function doLogin() {
   const username = document.getElementById('inUser').value.trim();
   const password = document.getElementById('inPass').value;
