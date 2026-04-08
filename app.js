@@ -367,15 +367,20 @@ function initMapOnce() {
   map.getPane('labels').style.zIndex = 650;
   map.getPane('labels').style.pointerEvents = 'none';
 
-  // Google Earth Engine Style Base Layers (High Res)
-  const baseOptions = { maxZoom: 22, maxNativeZoom: 20, attribution: '&copy; Google' };
+  // Google Earth Engine Style Base Layers (Maximum Resolution)
+  const baseOptions = { 
+    maxZoom: 22, maxNativeZoom: 21, 
+    tileSize: 256, zoomOffset: 0,
+    detectRetina: true,
+    attribution: '&copy; Google'
+  };
   const labelOptions = { ...baseOptions, pane: 'labels' };
   
-  const gmapStreets = L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
-  const gmapTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
-  const gmapSat = L.tileLayer('https://mt1.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', baseOptions);
+  const gmapStreets = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}&scale=2', { ...baseOptions, subdomains: '0123' });
+  const gmapTerrain = L.tileLayer('https://mt{s}.google.com/vt/lyrs=p&hl=en&x={x}&y={y}&z={z}&scale=2', { ...baseOptions, subdomains: '0123' });
+  const gmapSat = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&hl=en&x={x}&y={y}&z={z}&scale=2', { ...baseOptions, subdomains: '0123' });
   // Transparent labels & roads overlay
-  const gmapLabelsOverlay = L.tileLayer('https://mt1.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', labelOptions);
+  const gmapLabelsOverlay = L.tileLayer('https://mt{s}.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', { ...labelOptions, subdomains: '0123' });
 
   let currentBase = gmapTerrain;
   let currentLabels = gmapLabelsOverlay;
