@@ -556,10 +556,11 @@ async function handleUserMsg() {
         'Authorization': `Bearer ${groqApiKey}`
       },
       body: JSON.stringify({
-        model: 'llama3-70b-8192',
+        model: 'llama-3.3-70b-versatile',
         messages: chatHistory,
-        temperature: 0.7,
-        max_tokens: 1024
+        temperature: 0.5,
+        max_tokens: 1024,
+        stream: false
       })
     });
     
