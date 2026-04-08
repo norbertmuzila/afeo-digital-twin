@@ -88,4 +88,4 @@ Then open: **http://localhost:8080**
 - **Auth**: JSON Web Tokens (JWT)
 - **News**: ReliefWeb Open API (Water, Agriculture, Food Security)
 - **Hosting**: Railway (backend) + GitHub Pages (frontend)
-- **URLs**: `https://norbertmuzila.github.io/wafeo` (frontend) · `https://wafeo-production.up.railway.app` (backend)
+- **URLs**: `https://norbertmuzila.github.io/wafeo` (frontend) · `https://wafeo.up.railway.app` (backend)

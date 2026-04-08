@@ -2,7 +2,7 @@
 //  WAFEO Platform — Frontend Application
 // ════════════════════════════════════════
 
-const API = 'https://wafeo-production.up.railway.app/api';
+const API = 'https://wafeo.up.railway.app/api';
 let authToken = null;
 let currentUser = null;
 
