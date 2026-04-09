@@ -352,8 +352,9 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 
 /* ─── SCROLLABLE CONTENT ─── */
 .panel-scroll-content {
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
+  scroll-behavior: smooth;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-blue) rgba(0,0,0,0.03);
 }
@@ -369,6 +370,106 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 }
 .panel-scroll-content::-webkit-scrollbar-thumb:hover {
   background: #001933;
+}
+
+/* ─── NEWS PANEL SPECIFIC ─── */
+.news-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-secondary);
+}
+.news-filter-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.news-filter-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.filter-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.filter-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+.filter-btn.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+.news-source-select {
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  max-width: 160px;
+}
+.news-filter-count {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.news-item {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  transition: background 0.15s;
+}
+.news-item:hover {
+  background: var(--bg-deep);
+}
+.news-tag-badge {
+  color: #fff;
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+}
+.news-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 3px;
+  line-height: 1.35;
+  transition: color 0.2s;
+}
+.news-title:hover {
+  color: var(--accent-blue);
+}
+.news-meta {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.news-source-badge {
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 /* ─── TABLES ─── */
