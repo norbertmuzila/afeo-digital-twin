@@ -61,7 +61,7 @@ function auth(req, res, next) {
 function parseRSS(xml, sourceName, tag) {
   const items = [];
   const blocks = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
-  for (const block of blocks.slice(0, 8)) {
+  for (const block of blocks) {
     const getTag = (t) => {
       const m = block.match(new RegExp(`<${t}[^>]*>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/${t}>`, 'i'));
       return m ? m[1].trim().replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&#\d+;/g,'') : '';
@@ -117,51 +117,73 @@ async function fetchLiveNews() {
   await Promise.allSettled([
 
     // ══ RELIEFWEB POST API (UN OCHA) — 8 themes ════════════════
-    rwFetch('Food and Nutrition',           'Food Security', 10).then(r => all.push(...r)).catch(e => console.warn('[rw] food:', e.message)),
-    rwFetch('Agriculture',                  'Agriculture',    8).then(r => all.push(...r)).catch(e => console.warn('[rw] agri:', e.message)),
-    rwFetch('Water Sanitation Hygiene',     'Water',          8).then(r => all.push(...r)).catch(e => console.warn('[rw] water:', e.message)),
-    rwFetch('Disaster Management',          'Disaster',       5).then(r => all.push(...r)).catch(e => console.warn('[rw] disaster:', e.message)),
-    rwFetch('Climate Change and Environment','Agriculture',   5).then(r => all.push(...r)).catch(e => console.warn('[rw] climate:', e.message)),
-    rwFetch('Drought',                      'Water',          5).then(r => all.push(...r)).catch(e => console.warn('[rw] drought:', e.message)),
-    rwFetch('Flood',                        'Disaster',       5).then(r => all.push(...r)).catch(e => console.warn('[rw] flood:', e.message)),
-    rwFetch('Food Safety',                  'Food Security',  5).then(r => all.push(...r)).catch(e => console.warn('[rw] foodsafety:', e.message)),
+    rwFetch('Food and Nutrition',           'Food Security', 15).then(r => all.push(...r)).catch(e => console.warn('[rw] food:', e.message)),
+    rwFetch('Agriculture',                  'Agriculture',   15).then(r => all.push(...r)).catch(e => console.warn('[rw] agri:', e.message)),
+    rwFetch('Water Sanitation Hygiene',     'Water',         15).then(r => all.push(...r)).catch(e => console.warn('[rw] water:', e.message)),
+    rwFetch('Disaster Management',          'Disaster',      10).then(r => all.push(...r)).catch(e => console.warn('[rw] disaster:', e.message)),
+    rwFetch('Climate Change and Environment','Agriculture',   10).then(r => all.push(...r)).catch(e => console.warn('[rw] climate:', e.message)),
+    rwFetch('Drought',                      'Water',         10).then(r => all.push(...r)).catch(e => console.warn('[rw] drought:', e.message)),
+    rwFetch('Flood',                        'Disaster',      10).then(r => all.push(...r)).catch(e => console.warn('[rw] flood:', e.message)),
+    rwFetch('Food Safety',                  'Food Security', 10).then(r => all.push(...r)).catch(e => console.warn('[rw] foodsafety:', e.message)),
 
-    // ══ FAO — Food & Agriculture Organization (UN) ══════════════
+    // ══ REUTERS & BLOOMBERG (Proxy via Google News) ════════════
+    fetch('https://news.google.com/rss/search?q=site:reuters.com+(agriculture+OR+food+security+OR+water+scarcity)&hl=en-US&gl=US&ceid=US:en', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Reuters', 'Global News')))
+      .catch(e => console.warn('[rss] reuters:', e.message)),
+    fetch('https://news.google.com/rss/search?q=site:bloomberg.com+(agriculture+OR+food+security+OR+water+scarcity)&hl=en-US&gl=US&ceid=US:en', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Bloomberg', 'Financials')))
+      .catch(e => console.warn('[rss] bloomberg:', e.message)),
+
+    // ══ DEVEX (Global Development) ══════════════════════════════
+    fetch('https://news.google.com/rss/search?q=site:devex.com+(agriculture+OR+food+security+OR+water)&hl=en-US&gl=US&ceid=US:en', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Devex', 'Development')))
+      .catch(e => console.warn('[rss] devex:', e.message)),
+
+    // ══ CIRCLE OF BLUE & SCIENCEDAILY ═══════════════════════════
+    fetch('https://www.circleofblue.org/feed/', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Circle of Blue', 'Water')))
+      .catch(e => console.warn('[rss] circleofblue:', e.message)),
+    fetch('https://www.sciencedaily.com/rss/earth_climate/agriculture.xml', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'ScienceDaily', 'Research')))
+      .catch(e => console.warn('[rss] sd-agri:', e.message)),
+    fetch('https://www.sciencedaily.com/rss/earth_climate/water.xml', { headers: HDR, signal: AbortSignal.timeout(10000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'ScienceDaily', 'Water')))
+      .catch(e => console.warn('[rss] sd-water:', e.message)),
+
+    // ══ FAO, WFP, UN News ══════════════════════════════════════
     fetch('https://www.fao.org/news/rss-feed/en/', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'FAO', 'Agriculture')))
       .catch(e => console.warn('[rss] fao:', e.message)),
-
-    // ══ WFP — World Food Programme (UN) ════════════════════════
     fetch('https://www.wfp.org/rss/news', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'WFP', 'Food Security')))
       .catch(e => console.warn('[rss] wfp:', e.message)),
-
-    // ══ UN News — Food & Agriculture Topic Feed ═════════════════
     fetch('https://news.un.org/feed/subscribe/en/news/topic/food-and-agriculture/feed.rss', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'UN News', 'Food Security')))
       .catch(e => console.warn('[rss] un-news:', e.message)),
 
-    // ══ NASA Earth Observatory — Drought & Vegetation ══════════
+    // ══ NASA & GDACS ═══════════════════════════════════════════
     fetch('https://earthobservatory.nasa.gov/feeds/earth-observatory.rss', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'NASA Earth Observatory', 'Water')))
       .catch(e => console.warn('[rss] nasa-eo:', e.message)),
-
-    // ══ GDACS — Global Disaster Alert & Coordination System ════
     fetch('https://www.gdacs.org/xml/rss_10.xml', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'GDACS', 'Disaster')))
       .catch(e => console.warn('[rss] gdacs:', e.message)),
 
-    // ══ CGIAR — Agricultural Research for Development ══════════
+    // ══ ADDITIONAL: AgFunderNews & The Guardian ═══════════════
+    fetch('https://agfundernews.com/feed', { headers: HDR, signal: AbortSignal.timeout(9000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'AgFunder', 'Ag-Tech')))
+      .catch(e => console.warn('[rss] agfunder:', e.message)),
+    fetch('https://www.theguardian.com/environment/rss', { headers: HDR, signal: AbortSignal.timeout(9000) })
+      .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'The Guardian', 'Environment')))
+      .catch(e => console.warn('[rss] guardian:', e.message)),
+
+    // ══ CGIAR, World Bank, IFAD ════════════════════════════════
     fetch('https://www.cgiar.org/feed/', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'CGIAR', 'Agriculture')))
       .catch(e => console.warn('[rss] cgiar:', e.message)),
-
-    // ══ World Bank — Agriculture & Food Blog ═══════════════════
     fetch('https://blogs.worldbank.org/en/rss?blog=agriculture-and-food', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'World Bank', 'Agriculture')))
       .catch(e => console.warn('[rss] worldbank:', e.message)),
-
-    // ══ IFAD — Intl Fund for Agricultural Development ══════════
     fetch('https://www.ifad.org/en/rss', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'IFAD', 'Agriculture')))
       .catch(e => console.warn('[rss] ifad:', e.message)),

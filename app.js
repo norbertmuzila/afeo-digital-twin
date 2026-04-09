@@ -167,8 +167,12 @@ function renderNewsPanel(articles) {
     'Agriculture':   '#38a169',
     'Water':         '#3182ce',
     'Disaster':      '#d69e2e',
-    'FAO':           '#2f855a',
-    'WFP':           '#c05621'
+    'Global News':   '#003366',
+    'Financials':    '#4a5568',
+    'Development':   '#805ad5',
+    'Research':      '#319795',
+    'Ag-Tech':       '#2b6cb0',
+    'Environment':   '#276749'
   };
 
   const items = articles.map(a => {
@@ -185,7 +189,15 @@ function renderNewsPanel(articles) {
     </div>`;
   }).join('');
 
-  panel.innerHTML = `<div class="panel-hdr"><h3>📰 Live News — Water, Agriculture &amp; Food Systems</h3><span class="panel-badge" style="background:var(--accent-blue)">${articles.length} Reports</span></div>${items}`;
+  panel.innerHTML = `
+    <div class="panel-hdr">
+      <h3>📰 Live News — Water, Agriculture &amp; Food Systems</h3>
+      <span class="panel-badge" style="background:var(--accent-blue)">${articles.length} Reports</span>
+    </div>
+    <div class="panel-scroll-content">
+      ${items}
+    </div>
+  `;
 }
 
 

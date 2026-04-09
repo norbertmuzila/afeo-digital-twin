@@ -350,6 +350,27 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
   background: var(--accent-blue); color: #fff;
 }
 
+/* ─── SCROLLABLE CONTENT ─── */
+.panel-scroll-content {
+  max-height: 500px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-blue) rgba(0,0,0,0.03);
+}
+.panel-scroll-content::-webkit-scrollbar {
+  width: 6px;
+}
+.panel-scroll-content::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.03);
+}
+.panel-scroll-content::-webkit-scrollbar-thumb {
+  background: var(--accent-blue);
+  border-radius: 10px;
+}
+.panel-scroll-content::-webkit-scrollbar-thumb:hover {
+  background: #001933;
+}
+
 /* ─── TABLES ─── */
 .dtable { width: 100%; border-collapse: collapse; }
 .dtable th {
