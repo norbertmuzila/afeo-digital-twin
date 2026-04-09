@@ -326,7 +326,7 @@ app.get('/api/news', auth, async (req, res) => {
   try {
     const news = await fetchLiveNews();
     const limit = parseInt(req.query.limit, 10);
-    const articles = limit > 0 ? news.slice(0, limit) : news;
+    const articles = (!isNaN(limit) && limit > 0) ? news.slice(0, limit) : news;
 
     // Compute byTheme and bySources counts
     const byTheme = {};

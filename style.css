@@ -441,6 +441,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .news-item:hover {
   background: var(--bg-deep);
 }
+.news-item-tag {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.news-item-body {
+  flex: 1;
+  min-width: 0;
+}
 .news-tag-badge {
   color: #fff;
   font-size: 9px;

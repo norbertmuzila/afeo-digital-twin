@@ -170,18 +170,22 @@ const _tagColors = {
   'Environment':   '#276749'
 };
 
+function _getArticleSource(a) {
+  return (a.source && a.source.length > 0 ? a.source[0].name : null) || a.sourceName || 'Unknown';
+}
+
 function _buildNewsItems(articles) {
   if (!articles || articles.length === 0) {
     return '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No articles match the selected filters.</div>';
   }
   return articles.map(a => {
-    const date = a.date?.created ? new Date(a.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Today';
-    const source = a.source && a.source.length > 0 ? a.source[0].name : (a.sourceName || 'Global');
+    const date = a.date?.created ? new Date(a.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Date unknown';
+    const source = _getArticleSource(a);
     const countries = a.country && a.country.length > 0 ? a.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
     const tc = _tagColors[a.tag] || '#3182ce';
     return `<div class="news-item">
-      <div style="flex-shrink:0;margin-top:3px"><span class="news-tag-badge" style="background:${tc}">${a.tag || 'News'}</span></div>
-      <div style="flex:1;min-width:0">
+      <div class="news-item-tag"><span class="news-tag-badge" style="background:${tc}">${a.tag || 'News'}</span></div>
+      <div class="news-item-body">
         <a href="${a.url || '#'}" target="_blank" rel="noopener" class="news-title">${a.title}</a>
         <div class="news-meta">📍 ${countries} &nbsp;·&nbsp; <span class="news-source-badge">${source}</span> &nbsp;·&nbsp; 📅 ${date}</div>
       </div>
@@ -192,12 +196,7 @@ function _buildNewsItems(articles) {
 function _applyNewsFilters() {
   let filtered = _allNewsArticles;
   if (_newsActiveTheme !== 'All') filtered = filtered.filter(a => a.tag === _newsActiveTheme);
-  if (_newsActiveSource !== 'All') {
-    filtered = filtered.filter(a => {
-      const src = (a.source && a.source.length > 0 ? a.source[0].name : null) || a.sourceName || 'Unknown';
-      return src === _newsActiveSource;
-    });
-  }
+  if (_newsActiveSource !== 'All') filtered = filtered.filter(a => _getArticleSource(a) === _newsActiveSource);
   const list = document.getElementById('newsItemsList');
   const count = document.getElementById('newsFilterCount');
   if (list) list.innerHTML = _buildNewsItems(filtered);
@@ -219,7 +218,7 @@ function renderNewsPanel(articles) {
 
   // Collect unique themes and sources
   const themes = ['All', ...Array.from(new Set(articles.map(a => a.tag).filter(Boolean))).sort()];
-  const sources = ['All', ...Array.from(new Set(articles.map(a => (a.source && a.source.length > 0 ? a.source[0].name : null) || a.sourceName || 'Unknown'))).sort()];
+  const sources = ['All', ...Array.from(new Set(articles.map(a => _getArticleSource(a)))).sort()];
 
   const themeButtons = themes.map(t =>
     `<button class="filter-btn${t === 'All' ? ' active' : ''}" data-filter-theme="${t}">${t}</button>`
