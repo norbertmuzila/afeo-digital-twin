@@ -153,6 +153,56 @@ async function loadDashboard() {
 }
 
 // ─── NEWS PANEL RENDERER ─────────────────────────────────────
+let _allNewsArticles = [];
+let _newsActiveTheme = 'All';
+let _newsActiveSource = 'All';
+
+const _tagColors = {
+  'Food Security': '#e53e3e',
+  'Agriculture':   '#38a169',
+  'Water':         '#3182ce',
+  'Disaster':      '#d69e2e',
+  'Global News':   '#003366',
+  'Financials':    '#4a5568',
+  'Development':   '#805ad5',
+  'Research':      '#319795',
+  'Ag-Tech':       '#2b6cb0',
+  'Environment':   '#276749'
+};
+
+function _getArticleSource(a) {
+  return (a.source && a.source.length > 0 ? a.source[0].name : null) || a.sourceName || 'Unknown';
+}
+
+function _buildNewsItems(articles) {
+  if (!articles || articles.length === 0) {
+    return '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">No articles match the selected filters.</div>';
+  }
+  return articles.map(a => {
+    const date = a.date?.created ? new Date(a.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Date unknown';
+    const source = _getArticleSource(a);
+    const countries = a.country && a.country.length > 0 ? a.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
+    const tc = _tagColors[a.tag] || '#3182ce';
+    return `<div class="news-item">
+      <div class="news-item-tag"><span class="news-tag-badge" style="background:${tc}">${a.tag || 'News'}</span></div>
+      <div class="news-item-body">
+        <a href="${a.url || '#'}" target="_blank" rel="noopener" class="news-title">${a.title}</a>
+        <div class="news-meta">📍 ${countries} &nbsp;·&nbsp; <span class="news-source-badge">${source}</span> &nbsp;·&nbsp; 📅 ${date}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _applyNewsFilters() {
+  let filtered = _allNewsArticles;
+  if (_newsActiveTheme !== 'All') filtered = filtered.filter(a => a.tag === _newsActiveTheme);
+  if (_newsActiveSource !== 'All') filtered = filtered.filter(a => _getArticleSource(a) === _newsActiveSource);
+  const list = document.getElementById('newsItemsList');
+  const count = document.getElementById('newsFilterCount');
+  if (list) list.innerHTML = _buildNewsItems(filtered);
+  if (count) count.textContent = filtered.length + ' shown';
+}
+
 function renderNewsPanel(articles) {
   const panel = document.getElementById('newsPanel');
   if (!panel) return;
@@ -162,42 +212,59 @@ function renderNewsPanel(articles) {
     return;
   }
 
-  const tagColors = {
-    'Food Security': '#e53e3e',
-    'Agriculture':   '#38a169',
-    'Water':         '#3182ce',
-    'Disaster':      '#d69e2e',
-    'Global News':   '#003366',
-    'Financials':    '#4a5568',
-    'Development':   '#805ad5',
-    'Research':      '#319795',
-    'Ag-Tech':       '#2b6cb0',
-    'Environment':   '#276749'
-  };
+  _allNewsArticles = articles;
+  _newsActiveTheme = 'All';
+  _newsActiveSource = 'All';
 
-  const items = articles.map(a => {
-    const date = a.date?.created ? new Date(a.date.created).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'}) : 'Today';
-    const source = a.source && a.source.length > 0 ? a.source[0].name : (a.sourceName || 'Global');
-    const countries = a.country && a.country.length > 0 ? a.country.map(c => c.name).slice(0,3).join(', ') : 'Global';
-    const tc = tagColors[a.tag] || '#3182ce';
-    return `<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start">
-      <div style="flex-shrink:0;margin-top:3px"><span style="background:${tc};color:#fff;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;white-space:nowrap">${a.tag || 'News'}</span></div>
-      <div style="flex:1;min-width:0">
-        <a href="${a.url || '#'}" target="_blank" rel="noopener" style="font-weight:600;color:var(--text-primary);font-size:13px;text-decoration:none;display:block;margin-bottom:3px;line-height:1.35;transition:color .2s" onmouseover="this.style.color='var(--primary-color)'" onmouseout="this.style.color='var(--text-primary)'">${a.title}</a>
-        <div style="font-size:10px;color:var(--text-muted)">📍 ${countries} &nbsp;·&nbsp; 🏢 ${source} &nbsp;·&nbsp; 📅 ${date}</div>
-      </div>
-    </div>`;
-  }).join('');
+  // Collect unique themes and sources
+  const themes = ['All', ...Array.from(new Set(articles.map(a => a.tag).filter(Boolean))).sort()];
+  const sources = ['All', ...Array.from(new Set(articles.map(a => _getArticleSource(a)))).sort()];
+
+  const themeButtons = themes.map(t =>
+    `<button class="filter-btn${t === 'All' ? ' active' : ''}" data-filter-theme="${t}">${t}</button>`
+  ).join('');
+
+  const sourceOptions = sources.map(s =>
+    `<option value="${s}">${s}</option>`
+  ).join('');
 
   panel.innerHTML = `
     <div class="panel-hdr">
       <h3>📰 Live News — Water, Agriculture &amp; Food Systems</h3>
-      <span class="panel-badge" style="background:var(--accent-blue)">${articles.length} Reports</span>
+      <span class="panel-badge" style="background:var(--accent-blue)">${articles.length} Articles</span>
     </div>
-    <div class="panel-scroll-content">
-      ${items}
+    <div class="news-filters">
+      <div class="news-filter-themes">${themeButtons}</div>
+      <div class="news-filter-source">
+        <select id="newsSourceFilter" class="news-source-select">
+          ${sourceOptions}
+        </select>
+        <span id="newsFilterCount" class="news-filter-count">${articles.length} shown</span>
+      </div>
+    </div>
+    <div class="panel-scroll-content" id="newsItemsList">
+      ${_buildNewsItems(articles)}
     </div>
   `;
+
+  // Theme filter buttons
+  panel.querySelectorAll('.filter-btn[data-filter-theme]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      panel.querySelectorAll('.filter-btn[data-filter-theme]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      _newsActiveTheme = btn.dataset.filterTheme;
+      _applyNewsFilters();
+    });
+  });
+
+  // Source filter dropdown
+  const sourceSelect = document.getElementById('newsSourceFilter');
+  if (sourceSelect) {
+    sourceSelect.addEventListener('change', () => {
+      _newsActiveSource = sourceSelect.value;
+      _applyNewsFilters();
+    });
+  }
 }
 
 

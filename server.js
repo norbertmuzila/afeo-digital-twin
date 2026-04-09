@@ -325,9 +325,24 @@ app.get('/api/food-security', auth, (req, res) => {
 app.get('/api/news', auth, async (req, res) => {
   try {
     const news = await fetchLiveNews();
+    const limit = parseInt(req.query.limit, 10);
+    const articles = (!isNaN(limit) && limit > 0) ? news.slice(0, limit) : news;
+
+    // Compute byTheme and bySources counts
+    const byTheme = {};
+    const bySources = {};
+    for (const a of articles) {
+      const theme = a.tag || 'Other';
+      byTheme[theme] = (byTheme[theme] || 0) + 1;
+      const src = (a.source && a.source.length > 0 ? a.source[0].name : null) || a.sourceName || 'Unknown';
+      bySources[src] = (bySources[src] || 0) + 1;
+    }
+
     res.json({
-      articles: news.slice(0, 15),
+      articles,
       total:    news.length,
+      byTheme,
+      bySources,
       cached:   newsCache.fetchedAt > 0,
       fetchedAt: new Date(newsCache.fetchedAt).toISOString()
     });
