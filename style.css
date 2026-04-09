@@ -352,7 +352,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 
 /* ─── SCROLLABLE CONTENT ─── */
 .panel-scroll-content {
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-blue) rgba(0,0,0,0.03);

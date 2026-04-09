@@ -325,8 +325,10 @@ app.get('/api/food-security', auth, (req, res) => {
 app.get('/api/news', auth, async (req, res) => {
   try {
     const news = await fetchLiveNews();
+    const limit = Number.isFinite(+req.query.limit) ? Math.max(1, +req.query.limit) : null;
+
     res.json({
-      articles: news.slice(0, 15),
+      articles: limit ? news.slice(0, limit) : news,
       total:    news.length,
       cached:   newsCache.fetchedAt > 0,
       fetchedAt: new Date(newsCache.fetchedAt).toISOString()
