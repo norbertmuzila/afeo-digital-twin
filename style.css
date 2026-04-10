@@ -48,6 +48,34 @@
 
 body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); color: var(--text-primary); height: 100vh; overflow: hidden; }
 
+/* Google Sign-In Button */
+.btn-google {
+  width: 100%;
+  padding: 10px 15px;
+  background: white;
+  color: #757575;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  margin-bottom: 15px;
+}
+
+.btn-google:hover {
+  background: #f5f5f5;
+  border-color: #c1c7d0;
+  box-shadow: 0 1px 2px 0 rgba(60, 64, 67, 0.1), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+}
+
+.btn-google:active {
+  background: #e8eaed;
+}
+
 /* ═══════════ LOGIN ═══════════ */
 #loginScreen {
   position: fixed; inset: 0; z-index: 10000;

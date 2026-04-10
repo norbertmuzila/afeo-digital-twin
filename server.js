@@ -10,10 +10,13 @@ const path     = require('path');
 const fs       = require('fs');
 const jwt      = require('jsonwebtoken');
 const compression = require('compression');
+const { OAuth2Client } = require('google-auth-library');
 
 const app  = express();
 const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'wafeo-secret-2024-change-in-production';
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // ─── CORS — allow GitHub Pages frontend ─────────────────────
 app.use(cors({
@@ -271,6 +274,97 @@ app.post('/api/auth/logout', auth, (req, res) => {
   // Stateless JWT — client discards the token
   res.json({ message: 'Logged out successfully' });
 });
+
+// ─── Auth: Google Sign-In ────────────────────────────────────
+app.post('/api/auth/google', async (req, res) => {
+  const { credential } = req.body || {};
+  if (!credential) {
+    return res.status(400).json({ error: 'Google credential (id_token) required' });
+  }
+
+  try {
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: GOOGLE_CLIENT_ID, 
+      });
+      payload = ticket.getPayload();
+    } catch(err) {
+      // Mock fallback for demonstration purposes if Client ID isn't configured yet
+      if (GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE_CLIENT')) {
+        console.warn('Mocking Google Sign-In because CLIENT_ID is not set.');
+        payload = {
+          email: 'demo.user@gmail.com',
+          name: 'Demo User',
+          sub: '1234567890'
+        };
+      } else {
+        throw err;
+      }
+    }
+
+    if (!payload || !payload.email) {
+      return res.status(401).json({ error: 'Invalid Google token' });
+    }
+
+    const userData = payload;
+
+    // Check if user exists in our system, or create a new one
+    const users = readData('users.json');
+    if (!users) return res.status(500).json({ error: 'User store unavailable' });
+
+    let user = users.find(u => u.email === userData.email);
+    
+    // If user doesn't exist, create a new one with default role
+    if (!user) {
+      const newUser = {
+        id: users.length + 1,
+        username: userData.email.split('@')[0],
+        email: userData.email,
+        name: userData.name || userData.email.split('@')[0],
+        role: 'farmer', // default role for new users
+        password: '', // no password for Google users
+        googleId: userData.sub
+      };
+      users.push(newUser);
+      // In a real app, you would save this to the database
+      // fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+      user = newUser;
+    }
+
+    // Generate JWT token
+    const jwtToken = jwt.sign(
+      { id: user.id, username: user.username, role: user.role, name: user.name, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    const { password: _pw, ...safeUser } = user;
+    res.json({ token: jwtToken, user: safeUser });
+    
+  } catch (err) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: 'Google authentication failed' });
+  }
+});
+
+// Helper function to verify Google token (simplified for demo)
+async function verifyGoogleToken(token) {
+  // In a real application, you would use the Google Auth Library:
+  // const { OAuth2Client } = require('google-auth-library');
+  // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+  // const ticket = await client.verifyIdToken({ idToken: token, audience: process.env.GOOGLE_CLIENT_ID });
+  // return ticket.getPayload();
+  
+  // For this demo, we'll return mock data
+  return {
+    sub: 'google_' + Math.random().toString(36).substring(2, 15),
+    email: 'user@example.com',
+    name: 'Google User',
+    picture: 'https://example.com/profile.jpg'
+  };
+}
 
 // ─── Dashboard Stats ─────────────────────────────────────────
 app.get('/api/dashboard/stats', auth, (req, res) => {

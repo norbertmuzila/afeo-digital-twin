@@ -12,6 +12,70 @@ let currentUser = null;
 document.getElementById('btnLogin').addEventListener('click', doLogin);
 document.getElementById('inPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
+// Initialize Google Sign-In
+// Initialize Google Sign-In
+function handleGoogleCredentialResponse(response) {
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  
+  // Send ID token to backend for verification
+  fetch(API + '/auth/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ credential: response.credential })
+  })
+  .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
+  .then(({ status, ok, body }) => {
+    if (!ok) { 
+      errEl.textContent = body.error || 'Google sign-in failed. Please try again.';
+      errEl.classList.add('show'); 
+      return; 
+    }
+    
+    authToken = body.token;
+    currentUser = body.user;
+    document.getElementById('sbName').textContent = body.user.name;
+    document.getElementById('sbRole').textContent = body.user.role.charAt(0).toUpperCase() + body.user.role.slice(1);
+    document.getElementById('sbAvatar').textContent = body.user.name.split(' ').map(n => n[0]).join('').substring(0, 2);
+    
+    document.getElementById('loginScreen').classList.add('out');
+    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+    loadDashboard();
+    initMapOnce();
+  })
+  .catch(err => {
+    console.error('Google sign-in error:', err);
+    errEl.textContent = 'Cannot connect to server. Please check your connection.';
+    errEl.classList.add('show');
+  });
+}
+
+function initGoogleSignIn() {
+  const googleClientId = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+  
+  google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: handleGoogleCredentialResponse,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
+
+  google.accounts.id.renderButton(
+    document.getElementById("googleButtonContainer"),
+    { theme: "outline", size: "large", width: 330, text: "signin_with" }
+  );
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Wait a small moment to ensure google library is loaded if deferred
+  const checkGoogle = setInterval(() => {
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      clearInterval(checkGoogle);
+      initGoogleSignIn();
+    }
+  }, 100);
+});
+
 const aiFabBtn = document.getElementById('aiFabBtn');
 const aiWidgetPanel = document.getElementById('aiWidgetPanel');
 const aiCloseBtn = document.getElementById('aiCloseBtn');

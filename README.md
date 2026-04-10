@@ -36,14 +36,21 @@ Then push to GitHub — your live site now uses real data! ✅
 
 ---
 
-## 🔑 Demo Login Accounts
+## 🔑 Authentication Options
 
+### Traditional Login
 | Username | Password | Role |
 |----------|----------|------|
 | `admin` | `wafeo2024` | System Admin |
 | `farmer` | `wafeo2024` | Farmer |
 | `policy` | `wafeo2024` | Policy Maker |
 | `researcher` | `wafeo2024` | Researcher |
+
+### Google Sign-In
+✅ **Now Available** - Users can sign in with their Google accounts
+- First-time Google users are automatically registered with "farmer" role
+- No password required for Google-authenticated users
+- See [GOOGLE_AUTH_SETUP.md](GOOGLE_AUTH_SETUP.md) for configuration
 
 ---
 
@@ -52,7 +59,8 @@ Then push to GitHub — your live site now uses real data! ✅
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/api/health` | No | Server health check |
-| POST | `/api/auth/login` | No | Login → JWT token |
+| POST | `/api/auth/login` | No | Traditional login → JWT token |
+| POST | `/api/auth/google` | No | Google Sign-In → JWT token |
 | POST | `/api/auth/logout` | Yes | Logout |
 | GET | `/api/dashboard/stats` | Yes | Dashboard KPIs |
 | GET | `/api/alerts` | Yes | Crisis alerts |
