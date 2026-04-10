@@ -53,33 +53,27 @@ function handleGoogleCredentialResponse(response) {
 function initGoogleSignIn() {
   const googleClientId = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
   
-  // Custom button click binding to simulate the Google pipeline for portfolio demo purposes
-  const customGoogleBtn = document.getElementById('btnGoogleLogin');
-  if (customGoogleBtn) {
-    customGoogleBtn.addEventListener('click', () => {
-      // Provide visual feedback
-      const originalText = customGoogleBtn.innerHTML;
-      customGoogleBtn.innerHTML = '<span style="font-size:14px;">Authenticating...</span>';
-      customGoogleBtn.style.opacity = '0.7';
-      customGoogleBtn.style.pointerEvents = 'none';
+  google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: handleGoogleCredentialResponse,
+    auto_select: false,
+    cancel_on_tap_outside: true
+  });
 
-      // Simulate the popup delay, then send a mock token to the backend
-      setTimeout(() => {
-        handleGoogleCredentialResponse({ credential: "mock_demo_token_123" });
-        
-        // Reset button in case of failure
-        setTimeout(() => {
-          customGoogleBtn.innerHTML = originalText;
-          customGoogleBtn.style.opacity = '1';
-          customGoogleBtn.style.pointerEvents = 'auto';
-        }, 1000);
-      }, 800);
-    });
-  }
+  google.accounts.id.renderButton(
+    document.getElementById("googleButtonContainer"),
+    { theme: "outline", size: "large", width: 330, text: "signin_with" }
+  );
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initGoogleSignIn();
+  // Wait a small moment to ensure google library is loaded if deferred
+  const checkGoogle = setInterval(() => {
+    if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+      clearInterval(checkGoogle);
+      initGoogleSignIn();
+    }
+  }, 100);
 });
 
 const aiFabBtn = document.getElementById('aiFabBtn');
