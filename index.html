@@ -147,29 +147,39 @@
         </div>
         <div id="continentSelector" class="continent-selector">
           <div class="cont-box" onclick="flyToContinent('Asia')">
-            <div class="cont-ico ico-asia">🌍</div>
+            <div class="cont-ico ico-asia">🌏</div>
             <div class="cont-lbl" style="color: #0a6952;">ASIA</div>
-            <div class="cont-sub">Click your continent</div>
+            <div class="cont-sub">Click Continent</div>
           </div>
           <div class="cont-box" onclick="flyToContinent('Africa')">
             <div class="cont-ico ico-africa">🌍</div>
             <div class="cont-lbl" style="color: #b97416;">AFRICA</div>
-            <div class="cont-sub">Click your continent</div>
+            <div class="cont-sub">Click Continent</div>
           </div>
-          <div class="cont-box" onclick="flyToContinent('Americas')">
-            <div class="cont-ico ico-americas">🌎</div>
-            <div class="cont-lbl" style="color: #538116;">AMERICAS</div>
-            <div class="cont-sub">Click your continent</div>
+          <div class="cont-box" onclick="flyToContinent('NorthAmerica')">
+            <div class="cont-ico ico-namerica">🌎</div>
+            <div class="cont-lbl" style="color: #538116;">N. AMERICA</div>
+            <div class="cont-sub">Click Continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('SouthAmerica')">
+            <div class="cont-ico ico-samerica">🌎</div>
+            <div class="cont-lbl" style="color: #2d6a1e;">S. AMERICA</div>
+            <div class="cont-sub">Click Continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('Antarctica')">
+            <div class="cont-ico ico-antarctica">🧊</div>
+            <div class="cont-lbl" style="color: #64b5f6;">ANTARCTICA</div>
+            <div class="cont-sub">Click Continent</div>
           </div>
           <div class="cont-box" onclick="flyToContinent('Europe')">
             <div class="cont-ico ico-europe">🌍</div>
             <div class="cont-lbl" style="color: #8cb6df;">EUROPE</div>
-            <div class="cont-sub">Click your continent</div>
+            <div class="cont-sub">Click Continent</div>
           </div>
           <div class="cont-box" onclick="flyToContinent('Oceania')">
             <div class="cont-ico ico-oceania">🌏</div>
             <div class="cont-lbl" style="color: #9bbbd5;">OCEANIA</div>
-            <div class="cont-sub">Click your continent</div>
+            <div class="cont-sub">Click Continent</div>
           </div>
         </div>
       </div>
@@ -177,7 +187,7 @@
         <div class="hdr-btn" id="themeToggle" title="Toggle Light/Dark Theme">🌙</div>
         <div class="live-tag"><div class="live-dot"></div>Satellite Feed Live</div>
         <div class="search-box"><span>🔍</span><input type="text" placeholder="Search regions, crops..." id="globalSearch"></div>
-        <div class="hdr-btn">🔔<div class="notif"></div></div>
+        <div class="hdr-btn" id="notifBell" onclick="handleNotifClick()" title="Notifications" style="position:relative;cursor:pointer;">🔔<div class="notif" id="notifBadge"></div></div>
       </div>
     </header>
 
@@ -239,8 +249,6 @@
           </div>
         </div>
         <div class="stats-grid" id="statsGrid"></div>
-        <!-- Live News Feed -->
-        <div class="panel full" id="newsPanel"></div>
         <div class="grid-2">
           <div class="panel" id="alertsPanel"></div>
           <div class="panel" id="ndviPanel"></div>
@@ -424,6 +432,8 @@
           </div>
         </div>
       </div>
+      <!-- Live News moved here from Dashboard -->
+      <div class="panel full" id="newsPanel" style="margin-top:20px;"></div>
     </div></div>
     <div class="page" id="pg-settings"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚙️</span><h3>Platform Settings</h3><p>Manage satellite data sources, alert thresholds, notification preferences, user roles, and API integrations. Configure custom NDVI thresholds for your specific crop types and regions.</p></div></div></div></div>
     

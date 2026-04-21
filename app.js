@@ -138,19 +138,28 @@ function doLogout() {
 
 // ─── NAV & THEME ───
 const themeToggleBtn = document.getElementById('themeToggle');
+let isDarkMode = true; // Default is dark (no data-theme attribute)
 if(themeToggleBtn) {
+  // Check initial state
+  const initialTheme = document.documentElement.getAttribute('data-theme');
+  if (initialTheme === 'light') {
+    isDarkMode = false;
+    themeToggleBtn.textContent = '☀️';
+  } else {
+    isDarkMode = true;
+    themeToggleBtn.textContent = '🌙';
+  }
   themeToggleBtn.addEventListener('click', () => {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    if (currentTheme === 'light') {
-      document.documentElement.removeAttribute('data-theme');
-      themeToggleBtn.textContent = '🌙';
-      if(map) map.removeLayer(tileLayer);
-      if(map) tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(map);
-    } else {
+    if (isDarkMode) {
+      // Switch to LIGHT mode
       document.documentElement.setAttribute('data-theme', 'light');
       themeToggleBtn.textContent = '☀️';
-      if(map) map.removeLayer(tileLayer);
-      if(map) tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(map);
+      isDarkMode = false;
+    } else {
+      // Switch to DARK mode
+      document.documentElement.removeAttribute('data-theme');
+      themeToggleBtn.textContent = '🌙';
+      isDarkMode = true;
     }
   });
 }
@@ -184,6 +193,7 @@ document.querySelectorAll('.nav-link').forEach(link => {
     if (pg === 'precision-farming') loadFields();
     if (pg === 'water-resources') loadWater();
     if (pg === 'food-security') loadFood();
+    if (pg === 'reports') loadReports();
   });
 });
 
@@ -208,24 +218,31 @@ async function apiFetch(path) {
 
 // ─── DASHBOARD ───
 async function loadDashboard() {
-  const [stats, alerts, sats, ndvi, news] = await Promise.all([
+  const [stats, alerts, sats, ndvi] = await Promise.all([
     apiFetch('/dashboard/stats'),
     apiFetch('/alerts'),
     apiFetch('/satellites'),
-    apiFetch('/analytics/ndvi-by-region'),
-    apiFetch('/news')
+    apiFetch('/analytics/ndvi-by-region')
   ]);
 
   if (document.getElementById('pgHeaders')) document.getElementById('pgHeaders').style.display = 'none';
   if (document.getElementById('continentSelector')) document.getElementById('continentSelector').style.display = 'flex';
 
   if (stats) renderStats(stats);
-  if (alerts) renderAlerts(alerts.alerts);
+  if (alerts) {
+    renderAlerts(alerts.alerts);
+    updateNotifBadge(alerts.alerts);
+  }
   if (sats) renderSatellites(sats.satellites);
   if (ndvi) renderNDVIChart(ndvi.data);
-  if (news) renderNewsPanel(news.articles);
   renderWaterGauges();
   renderFoodQuick();
+}
+
+// ─── REPORTS PAGE (loads news here) ───
+async function loadReports() {
+  const news = await apiFetch('/news');
+  if (news) renderNewsPanel(news.articles);
 }
 
 let _cachedNews = [];
@@ -783,7 +800,9 @@ window.flyToContinent = function(continentName) {
   const bounds = {
     'Asia': [[-10, 35], [75, 145]],
     'Africa': [[-35, -20], [37, 51]],
-    'Americas': [[-55, -135], [70, -35]],
+    'NorthAmerica': [[10, -170], [72, -50]],
+    'SouthAmerica': [[-56, -82], [13, -34]],
+    'Antarctica': [[-90, -180], [-60, 180]],
     'Europe': [[35, -10], [70, 40]],
     'Oceania': [[-47, 110], [5, 180]]
   };
@@ -797,6 +816,51 @@ window.flyToContinent = function(continentName) {
       console.error("Map flyTo error:", e);
     }
   }
+};
+
+// ─── NOTIFICATION BELL HANDLER ───
+let _cachedAlerts = [];
+function updateNotifBadge(alerts) {
+  _cachedAlerts = alerts || [];
+  const badge = document.getElementById('notifBadge');
+  if (!badge) return;
+  const critCount = alerts.filter(a => a.severity === 'critical').length;
+  const warnCount = alerts.filter(a => a.severity === 'warning').length;
+  const total = critCount + warnCount;
+  if (total > 0) {
+    badge.textContent = total;
+    badge.style.display = 'flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+window.handleNotifClick = function() {
+  if (!_cachedAlerts || _cachedAlerts.length === 0) {
+    alert('No active notifications.');
+    return;
+  }
+  // Find highest severity alert and navigate to its source page
+  const crit = _cachedAlerts.find(a => a.severity === 'critical');
+  const topAlert = crit || _cachedAlerts[0];
+  // Map alert source keywords to page IDs
+  const sourceMap = {
+    'drought': 'drought-monitor',
+    'food': 'food-security',
+    'water': 'water-resources',
+    'crop': 'crop-monitoring',
+    'soil': 'soil-analysis',
+    'farm': 'precision-farming',
+    'warning': 'early-warning'
+  };
+  let targetPage = 'early-warning'; // default
+  const sourceText = ((topAlert.source || '') + ' ' + (topAlert.title || '')).toLowerCase();
+  for (const [keyword, page] of Object.entries(sourceMap)) {
+    if (sourceText.includes(keyword)) { targetPage = page; break; }
+  }
+  // Navigate to that page
+  const navLink = document.querySelector(`.nav-link[data-page="${targetPage}"]`);
+  if (navLink) navLink.click();
 };
 
 window.toggleNasaGibs = function() {

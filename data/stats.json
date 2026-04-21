@@ -1,22 +1,22 @@
 {
   "cropHealth": {
-    "value": "78.4",
-    "change": "+3.2%",
-    "trend": "up"
+    "value": "0.54",
+    "change": "▼ 2.1% vs 30d avg",
+    "trend": "down"
   },
   "waterScore": {
-    "value": "62.1",
-    "change": "-5.8%",
+    "value": "58.3%",
+    "change": "▼ 4.7% YoY",
     "trend": "down"
   },
   "foodAlerts": {
-    "value": 14,
-    "change": "+4 critical",
+    "value": 18,
+    "change": "5 critical, 13 warning",
     "trend": "up"
   },
   "satellites": {
-    "value": "7/9",
-    "change": "Sentinel-2, Landsat-9",
+    "value": "10/10",
+    "change": "All feeds active",
     "trend": "up"
   }
 }
