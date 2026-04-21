@@ -46,7 +46,7 @@
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); color: var(--text-primary); height: 100vh; overflow: hidden; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); color: var(--text-primary); height: 100dvh; overflow: hidden; }
 
 /* Google Sign-In Button */
 .btn-google {
@@ -213,7 +213,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 
 /* ═══════════ APP SHELL ═══════════ */
-#appShell { display: flex; height: 100vh; opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+#appShell { display: flex; height: 100dvh; opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
 #appShell.on { opacity: 1; pointer-events: auto; }
 
 /* ─── SIDEBAR ─── */
@@ -279,10 +279,10 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 
 /* ─── HEADER ─── */
 .top-bar {
-  height: var(--header-h); padding: 0 24px;
+  min-height: var(--header-h); padding: 10px 24px;
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid var(--border); background: var(--bg-secondary);
-  flex-shrink: 0;
+  flex-shrink: 0; transition: min-height 0.3s;
 }
 .tb-left { display: flex; align-items: center; gap: 14px; }
 .tb-left h2 { font-size: 16px; font-weight: 650; }
@@ -797,4 +797,91 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 @keyframes popIn {
   from { opacity: 0; transform: scale(0.8) translateY(20px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ─── CONTINENT SELECTOR ─── */
+.continent-selector {
+  display: none; /* toggled by JS */
+  align-items: center;
+  gap: 20px;
+  padding: 5px 0;
+}
+
+.cont-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transform: translateY(0);
+  transition: transform 0.2s;
+  animation: floatBump 4s ease-in-out infinite;
+}
+
+/* Add slight delay offsets so they don't bounce identically at the same time */
+.cont-box:nth-child(1) { animation-delay: 0.1s; }
+.cont-box:nth-child(2) { animation-delay: 0.3s; }
+.cont-box:nth-child(3) { animation-delay: 0.5s; }
+.cont-box:nth-child(4) { animation-delay: 0.2s; }
+.cont-box:nth-child(5) { animation-delay: 0.4s; }
+
+.cont-box:hover {
+  transform: scale(1.1) translateY(-2px);
+  animation-play-state: paused;
+}
+
+@keyframes floatBump {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0); }
+}
+
+.cont-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e3ebf3, #ffffff);
+  border: 2px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8);
+  margin-bottom: 4px;
+  transition: all 0.3s;
+  position: relative;
+}
+
+/* Metallic styling logic for the icons */
+.ico-asia { border-color: #0a6952; box-shadow: 0 4px 10px rgba(10,105,82,0.2); }
+.ico-africa { border-color: #b97416; box-shadow: 0 4px 10px rgba(185,116,22,0.2); }
+.ico-americas { border-color: #538116; box-shadow: 0 4px 10px rgba(83,129,22,0.2); }
+.ico-europe { border-color: #8cb6df; box-shadow: 0 4px 10px rgba(140,182,223,0.2); }
+.ico-oceania { border-color: #9bbbd5; box-shadow: 0 4px 10px rgba(155,187,213,0.2); }
+
+.cont-box:hover .cont-ico {
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+.cont-box.active .cont-ico {
+  border-width: 3px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+.cont-lbl {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-shadow: 0px 1px 2px rgba(0,0,0,0.1);
+}
+
+.cont-sub {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+  opacity: 0.8;
 }

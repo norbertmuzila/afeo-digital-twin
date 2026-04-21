@@ -141,8 +141,37 @@
   <div class="main">
     <header class="top-bar">
       <div class="tb-left">
-        <h2 id="pgTitle">Dashboard</h2>
-        <span class="crumb" id="pgCrumb">WAFEO / Overview</span>
+        <div id="pgHeaders">
+          <h2 id="pgTitle">Dashboard</h2>
+          <span class="crumb" id="pgCrumb">WAFEO / Overview</span>
+        </div>
+        <div id="continentSelector" class="continent-selector">
+          <div class="cont-box" onclick="flyToContinent('Asia')">
+            <div class="cont-ico ico-asia">🌍</div>
+            <div class="cont-lbl" style="color: #0a6952;">ASIA</div>
+            <div class="cont-sub">Click your continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('Africa')">
+            <div class="cont-ico ico-africa">🌍</div>
+            <div class="cont-lbl" style="color: #b97416;">AFRICA</div>
+            <div class="cont-sub">Click your continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('Americas')">
+            <div class="cont-ico ico-americas">🌎</div>
+            <div class="cont-lbl" style="color: #538116;">AMERICAS</div>
+            <div class="cont-sub">Click your continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('Europe')">
+            <div class="cont-ico ico-europe">🌍</div>
+            <div class="cont-lbl" style="color: #8cb6df;">EUROPE</div>
+            <div class="cont-sub">Click your continent</div>
+          </div>
+          <div class="cont-box" onclick="flyToContinent('Oceania')">
+            <div class="cont-ico ico-oceania">🌏</div>
+            <div class="cont-lbl" style="color: #9bbbd5;">OCEANIA</div>
+            <div class="cont-sub">Click your continent</div>
+          </div>
+        </div>
       </div>
       <div class="tb-right">
         <div class="hdr-btn" id="themeToggle" title="Toggle Light/Dark Theme">🌙</div>

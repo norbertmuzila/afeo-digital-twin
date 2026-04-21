@@ -169,6 +169,15 @@ document.querySelectorAll('.nav-link').forEach(link => {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     const el = document.getElementById('pg-' + pg);
     if (el) el.classList.add('active');
+    
+    if (pg === 'dashboard') {
+       if (document.getElementById('pgHeaders')) document.getElementById('pgHeaders').style.display = 'none';
+       if (document.getElementById('continentSelector')) document.getElementById('continentSelector').style.display = 'flex';
+    } else {
+       if (document.getElementById('pgHeaders')) document.getElementById('pgHeaders').style.display = 'block';
+       if (document.getElementById('continentSelector')) document.getElementById('continentSelector').style.display = 'none';
+    }
+
     document.getElementById('pgTitle').textContent = titleMap[pg] || pg;
     document.getElementById('pgCrumb').textContent = 'WAFEO / ' + (titleMap[pg] || pg);
     if (pg === 'world-map') initMapOnce();
@@ -206,6 +215,9 @@ async function loadDashboard() {
     apiFetch('/analytics/ndvi-by-region'),
     apiFetch('/news')
   ]);
+
+  if (document.getElementById('pgHeaders')) document.getElementById('pgHeaders').style.display = 'none';
+  if (document.getElementById('continentSelector')) document.getElementById('continentSelector').style.display = 'flex';
 
   if (stats) renderStats(stats);
   if (alerts) renderAlerts(alerts.alerts);
@@ -747,3 +759,34 @@ function appendChatMsg(type, avatar, text, id = null, isHtml = false) {
   chatWindow.appendChild(div);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
+
+window.flyToContinent = function(continentName) {
+  if (!map) return;
+  // Mark the active icon visually
+  document.querySelectorAll('.cont-box').forEach(box => {
+    box.classList.remove('active');
+    const lbl = box.querySelector('.cont-lbl');
+    if (lbl && lbl.textContent.trim().toUpperCase() === continentName.toUpperCase()) {
+      box.classList.add('active');
+    }
+  });
+
+  // Calculate zoom bounds [SouthWest, NorthEast]
+  const bounds = {
+    'Asia': [[-10, 35], [75, 145]],
+    'Africa': [[-35, -20], [37, 51]],
+    'Americas': [[-55, -135], [70, -35]],
+    'Europe': [[35, -10], [70, 40]],
+    'Oceania': [[-47, 110], [5, 180]]
+  };
+
+  const b = bounds[continentName];
+  if (b) {
+    try {
+      // smooth fly animation
+      map.flyToBounds(b, { padding: [20, 20], duration: 1.5 });
+    } catch(e) {
+      console.error("Map flyTo error:", e);
+    }
+  }
+};
