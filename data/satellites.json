@@ -1,12 +1,12 @@
 [
-  { "name": "Sentinel-2A",    "agency": "ESA / Copernicus", "passTime": "06:42", "coverage": "Sub-Saharan Africa", "resolution": "10m",   "dataType": "Multispectral",      "status": "active"    },
-  { "name": "Sentinel-2B",    "agency": "ESA / Copernicus", "passTime": "09:15", "coverage": "South Asia",         "resolution": "10m",   "dataType": "Multispectral",      "status": "active"    },
-  { "name": "Sentinel-1A",    "agency": "ESA / Copernicus", "passTime": "07:30", "coverage": "West Africa",         "resolution": "10m",   "dataType": "SAR C-band",         "status": "active"    },
-  { "name": "Sentinel-3A",    "agency": "ESA / Copernicus", "passTime": "08:20", "coverage": "Global Oceans",       "resolution": "300m",  "dataType": "OLCI / SLSTR",       "status": "active"    },
-  { "name": "Landsat-9",      "agency": "NASA / USGS",      "passTime": "10:30", "coverage": "Latin America",       "resolution": "30m",   "dataType": "OLI-2 / TIRS-2",     "status": "active"    },
-  { "name": "Landsat-8",      "agency": "NASA / USGS",      "passTime": "12:10", "coverage": "East Africa",         "resolution": "30m",   "dataType": "OLI / TIRS",         "status": "active"    },
-  { "name": "MODIS (Terra)",  "agency": "NASA",             "passTime": "11:45", "coverage": "Global",             "resolution": "250m",  "dataType": "36-Band Spectral",   "status": "active"    },
-  { "name": "MODIS (Aqua)",   "agency": "NASA",             "passTime": "14:00", "coverage": "Global",             "resolution": "250m",  "dataType": "36-Band Spectral",   "status": "active"    },
-  { "name": "SMAP",           "agency": "NASA JPL",         "passTime": "14:20", "coverage": "Central Asia",        "resolution": "9km",   "dataType": "Soil Moisture",      "status": "scheduled" },
-  { "name": "GRACE-FO",       "agency": "NASA / DLR",       "passTime": "16:55", "coverage": "Africa",             "resolution": "300km", "dataType": "Gravity / Groundwater","status": "scheduled"}
+  { "name": "Copernicus Sentinel Hub",             "agency": "ESA",                 "passTime": "Continuous",  "coverage": "Global",             "resolution": "10m",    "dataType": "Optical / SAR",      "status": "active" },
+  { "name": "Sentinel Hub EO (Daily)",             "agency": "ESA",                 "passTime": "Continuous",  "coverage": "Global",             "resolution": "10m",    "dataType": "Daily Imagery",      "status": "active" },
+  { "name": "Sentinel Hub EO (Multi-sat)",         "agency": "ESA / Various",       "passTime": "Continuous",  "coverage": "Global",             "resolution": "Var.",   "dataType": "Multi-satellite",    "status": "active" },
+  { "name": "Earth Explorer (Landsat)",            "agency": "USGS",                "passTime": "10:30",       "coverage": "Global",             "resolution": "15-30m", "dataType": "Multispectral",      "status": "active" },
+  { "name": "Earth Explorer (MODIS)",              "agency": "USGS / NASA",         "passTime": "11:00",       "coverage": "Global",             "resolution": "250m",   "dataType": "Multispectral",      "status": "active" },
+  { "name": "EarthData / WorldView (MODIS/VIIRS)", "agency": "NASA",                "passTime": "Live Stream", "coverage": "Global",             "resolution": "250m",   "dataType": "True-Color Array",   "status": "active" },
+  { "name": "Google Earth Engine",                 "agency": "Google / Public",     "passTime": "Aggregated",  "coverage": "Global",             "resolution": "Var.",   "dataType": "Cloud Geospatial",   "status": "active" },
+  { "name": "G-Portal (ALOS)",                     "agency": "JAXA",                "passTime": "10:30",       "coverage": "Asia-Pacific",       "resolution": "10m",    "dataType": "PALSAR / Optical",   "status": "active" },
+  { "name": "Bhuvan (Resourcesat)",                "agency": "ISRO",                "passTime": "10:30",       "coverage": "India / S. Asia",    "resolution": "5.8m",   "dataType": "Optical / LISS",     "status": "active" },
+  { "name": "PlanetScope Explorer",                "agency": "Planet Labs",         "passTime": "Daily",       "coverage": "Global High-Res",    "resolution": "3m",     "dataType": "SuperDove Const.",   "status": "active" }
 ]

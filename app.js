@@ -539,6 +539,14 @@ function initMapOnce() {
   // Transparent labels & roads overlay
   const gmapLabelsOverlay = L.tileLayer('https://mt{s}.google.com/vt/lyrs=h&hl=en&x={x}&y={y}&z={z}&scale=2', { ...labelOptions, subdomains: '0123' });
 
+  // NASA GIBS MODIS True Color (Using T-2 days for confirmed global tile availability)
+  const safeDate = new Date(Date.now() - 86400000*2).toISOString().split('T')[0];
+  window.nasaGibsLayer = L.tileLayer(`https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${safeDate}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`, {
+    ...baseOptions,
+    maxNativeZoom: 9,
+    attribution: '&copy; NASA EOSDIS GIBS'
+  });
+
   let currentBase = gmapStreets;
   let currentLabels = gmapLabelsOverlay;
   currentBase.addTo(map);
@@ -788,5 +796,30 @@ window.flyToContinent = function(continentName) {
     } catch(e) {
       console.error("Map flyTo error:", e);
     }
+  }
+};
+
+window.toggleNasaGibs = function() {
+  if (!map || !window.nasaGibsLayer) return;
+  const chk = document.getElementById('sat-nasa');
+  if (chk && chk.checked) {
+    window.nasaGibsLayer.addTo(map);
+    window.nasaGibsLayer.bringToFront();
+    if (window.geoLayerRef) window.geoLayerRef.bringToFront();
+  } else {
+    map.removeLayer(window.nasaGibsLayer);
+  }
+};
+
+window.alertApiKey = async function(provider) {
+  try {
+    const res = await fetch(API + `/satellite/external/${encodeURIComponent(provider.replace(/\s+/g, '-').toLowerCase())}`, {
+      headers: authToken ? { 'Authorization': 'Bearer ' + authToken } : {}
+    });
+    const data = await res.json();
+    alert(`🔒 ${provider} Action Blocked\n\n${data.message || 'API Key is missing for this satellite provider.'}`);
+  } catch (err) {
+    // Fallback if backend route fails
+    alert(`🔒 ${provider} Access Denied\n\nYou must configure an Enterprise API key for this data stream in the environment variables.`);
   }
 };

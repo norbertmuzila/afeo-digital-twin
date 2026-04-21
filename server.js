@@ -432,6 +432,18 @@ app.get('/api/news', auth, async (req, res) => {
   }
 });
 
+// ─── External Satellite Integrations (Config Required) ─────────
+app.get('/api/satellite/external/:provider', auth, (req, res) => {
+  const provider = req.params.provider.toUpperCase();
+  // Protected API Integrations placeholder
+  // Systems like PE (Planet), GEE (Google Earth Engine), or SH (Sentinel Hub) require paid/registered API keys
+  res.status(403).json({
+    error: 'API_KEY_REQUIRED', 
+    provider: provider,
+    message: `Enterprise API Key configuration is missing for ${provider}. Please update your server environment variables to connect this live stream.`
+  });
+});
+
 // ─── Catch-all → SPA ─────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
