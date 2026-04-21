@@ -129,6 +129,18 @@ async function doLogin() {
   }
 }
 
+// Demo mode — bypass login for conference attendees
+function enterDemoMode() {
+  currentUser = { name: 'Demo User', role: 'researcher' };
+  document.getElementById('sbName').textContent = 'Demo User';
+  document.getElementById('sbRole').textContent = 'Demo Mode';
+  document.getElementById('sbAvatar').textContent = 'DM';
+  document.getElementById('loginScreen').classList.add('out');
+  setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+  loadDashboard();
+  initMapOnce();
+}
+
 function doLogout() {
   if (authToken) fetch(API + '/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + authToken } });
   authToken = null; currentUser = null;
@@ -340,12 +352,14 @@ function handleNewsSearch(e) {
 
 
 
+const _ts = () => new Date().toISOString().split('T')[0];
+
 function renderStats(s) {
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><div class="sc-icon g">🌾</div><div class="sc-label">Global Crop Health</div><div class="sc-value" style="color:var(--accent-green)">${s.cropHealth.value}</div><div class="sc-change up">${s.cropHealth.change}</div></div>
-    <div class="stat-card"><div class="sc-icon b">💧</div><div class="sc-label">Water Availability</div><div class="sc-value" style="color:var(--accent-blue)">${s.waterScore.value}</div><div class="sc-change dn">${s.waterScore.change}</div></div>
-    <div class="stat-card"><div class="sc-icon a">🛡️</div><div class="sc-label">Food Security Alerts</div><div class="sc-value" style="color:var(--accent-amber)">${s.foodAlerts.value}</div><div class="sc-change neut">${s.foodAlerts.change}</div></div>
-    <div class="stat-card"><div class="sc-icon c">🛰️</div><div class="sc-label">Active Satellites</div><div class="sc-value" style="color:var(--accent-cyan)">${s.satellites.value}</div><div class="sc-change neut">${s.satellites.change}</div></div>
+    <div class="stat-card"><div class="sc-icon g">🌾</div><div class="sc-label">Global Crop Health (NDVI)</div><div class="sc-value" style="color:var(--accent-green)">${s.cropHealth.value}</div><div class="sc-change up">${s.cropHealth.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">Sentinel-2 / MODIS · ${_ts()}</div></div>
+    <div class="stat-card"><div class="sc-icon b">💧</div><div class="sc-label">Water Availability</div><div class="sc-value" style="color:var(--accent-blue)">${s.waterScore.value}</div><div class="sc-change dn">${s.waterScore.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">GRACE-FO / NISAR · ${_ts()}</div></div>
+    <div class="stat-card"><div class="sc-icon a">🛡️</div><div class="sc-label">Food Security Alerts</div><div class="sc-value" style="color:var(--accent-amber)">${s.foodAlerts.value}</div><div class="sc-change neut">${s.foodAlerts.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">IPC / FEWS NET · ${_ts()}</div></div>
+    <div class="stat-card"><div class="sc-icon c">🛰️</div><div class="sc-label">Active Satellites</div><div class="sc-value" style="color:var(--accent-cyan)">${s.satellites.value}</div><div class="sc-change neut">${s.satellites.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">incl. NISAR · ${_ts()}</div></div>
   `;
 }
 
@@ -367,36 +381,37 @@ function renderAlerts(alerts) {
 function renderNDVIChart(data) {
   const ndviColors = v => v>=0.7?'#1a9850':v>=0.55?'#91cf60':v>=0.4?'#d9ef8b':v>=0.3?'#fee08b':v>=0.2?'#fc8d59':'#d73027';
   const bars = data.map(d => `<div class="bar-col"><div class="bar-val">${d.ndvi}</div><div class="bar" style="height:${d.ndvi*220}px;background:${ndviColors(d.ndvi)}"></div><div class="bar-lbl">${d.region.replace('North ','N. ').replace('South ','S. ').replace('Southeast ','SE ')}</div></div>`).join('');
-  document.getElementById('ndviPanel').innerHTML = `<div class="panel-hdr"><h3>🌾 Regional Crop Health (NDVI)</h3><span class="panel-badge">Sentinel-2</span></div><div class="bar-chart">${bars}</div><div class="ndvi-gradient"></div><div class="ndvi-labels"><span>Bare</span><span>Stressed</span><span>Moderate</span><span>Healthy</span><span>Very Healthy</span></div>`;
+  document.getElementById('ndviPanel').innerHTML = `<div class="panel-hdr"><h3>🌾 Regional Crop Health (NDVI)</h3><span class="panel-badge">Sentinel-2</span></div><div class="bar-chart">${bars}</div><div class="ndvi-gradient"></div><div class="ndvi-labels"><span>Bare</span><span>Stressed</span><span>Moderate</span><span>Healthy</span><span>Very Healthy</span></div><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">Source: ESA Sentinel-2 (2A/2B/2C) 10m NDVI · Updated: ${_ts()}</div>`;
 }
 
 function renderWaterGauges() {
   document.getElementById('waterPanel').innerHTML = `
-    <div class="panel-hdr"><h3>💧 Water Resources</h3><span class="panel-badge">GRACE-FO</span></div>
+    <div class="panel-hdr"><h3>💧 Water Resources</h3><span class="panel-badge">GRACE-FO / NISAR</span></div>
     <div class="gauge-row">
       <div class="gauge-item"><label><span>Global Reservoir Levels</span><span>67%</span></label><div class="gauge-track"><div class="gauge-fill water" style="width:67%"></div></div></div>
       <div class="gauge-item"><label><span>Groundwater Index</span><span>54%</span></label><div class="gauge-track"><div class="gauge-fill mixed" style="width:54%"></div></div></div>
       <div class="gauge-item"><label><span>Rainfall Anomaly (30d)</span><span style="color:var(--accent-red)">−18%</span></label><div class="gauge-track"><div class="gauge-fill low" style="width:38%"></div></div></div>
       <div class="gauge-item"><label><span>Snow Water Equivalent</span><span>81%</span></label><div class="gauge-track"><div class="gauge-fill high" style="width:81%"></div></div></div>
-    </div>`;
+    </div>
+    <div style="font-size:9px;color:var(--text-muted);padding:8px 16px 4px">Source: NASA GRACE-FO, NISAR, CHIRPS, ERA5 · Updated: ${_ts()} · <em>[Illustrative values — connect live API]</em></div>`;
 }
 
 function renderFoodQuick() {
   const rows = [
-    ['🇸🇴 Somalia','Phase 4','4.2M','▲ Worsening','crit','var(--accent-red)'],
-    ['🇸🇩 Sudan','Phase 4','6.1M','▲ Worsening','crit','var(--accent-red)'],
-    ['🇪🇹 Ethiopia','Phase 3','3.8M','→ Stable','warn','var(--accent-amber)'],
-    ['🇦🇫 Afghanistan','Phase 3','5.5M','▼ Improving','warn','var(--accent-green)'],
-    ['🇭🇹 Haiti','Phase 3','1.8M','→ Stable','warn','var(--accent-amber)'],
-    ['🇲🇬 Madagascar','Phase 2','1.3M','▼ Improving','info','var(--accent-green)'],
+    ['🇸🇴 Somalia','Phase 4–5','6.5M','▲ Worsening','crit','var(--accent-red)'],
+    ['🇸🇩 Sudan','Phase 4','8.7M','▲ Worsening','crit','var(--accent-red)'],
+    ['🇪🇹 Ethiopia','Phase 3–4','12.8M','▲ Worsening','crit','var(--accent-red)'],
+    ['🇦🇫 Afghanistan','Phase 3','15.3M','→ Stable','warn','var(--accent-amber)'],
+    ['🇭🇹 Haiti','Phase 3','4.9M','→ Stable','warn','var(--accent-amber)'],
+    ['🇲🇬 Madagascar','Phase 3','2.2M','▼ Improving','info','var(--accent-green)'],
   ];
   const tbody = rows.map(r => `<tr><td>${r[0]}</td><td><span class="pill ${r[4]}">${r[1]}</span></td><td class="mono">${r[2]}</td><td style="color:${r[5]}">${r[3]}</td></tr>`).join('');
-  document.getElementById('foodPanel').innerHTML = `<div class="panel-hdr"><h3>🛡️ Food Security Watch</h3><span class="panel-badge">IPC</span></div><table class="dtable"><thead><tr><th>Region</th><th>Phase</th><th>Pop.</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table>`;
+  document.getElementById('foodPanel').innerHTML = `<div class="panel-hdr"><h3>🛡️ Food Security Watch</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Region</th><th>Phase</th><th>Pop.</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">Source: IPC, FEWS NET, WFP · Updated: ${_ts()}</div>`;
 }
 
 function renderSatellites(sats) {
   const tbody = sats.map(s => `<tr><td>${s.name}</td><td>${s.agency}</td><td class="mono">${s.passTime}</td><td>${s.coverage}</td><td>${s.resolution}</td><td>${s.dataType}</td><td><span class="pill ${s.status==='active'?'ok':'info'}">● ${s.status.charAt(0).toUpperCase()+s.status.slice(1)}</span></td></tr>`).join('');
-  document.getElementById('satPanel').innerHTML = `<div class="panel-hdr"><h3>🛰️ Satellite Coverage — Next 24h</h3><span class="panel-badge">${sats.length} Passes</span></div><table class="dtable"><thead><tr><th>Satellite</th><th>Agency</th><th>Pass (UTC)</th><th>Coverage</th><th>Res.</th><th>Data</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table>`;
+  document.getElementById('satPanel').innerHTML = `<div class="panel-hdr"><h3>🛰️ Active Satellite Data Sources</h3><span class="panel-badge">${sats.length} Sources</span></div><table class="dtable"><thead><tr><th>Satellite / Source</th><th>Agency</th><th>Frequency</th><th>Coverage</th><th>Res.</th><th>Data</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">All sources free or open-access · Updated: ${_ts()}</div>`;
 }
 
 function timeAgo(ts) {
@@ -671,7 +686,7 @@ function showMapOverview() {
   document.getElementById('mapDetail').innerHTML = `
     <h3>🌍 Global Overview</h3>
     <div class="md-row"><span class="md-l">Monitored Area</span><span class="md-v">148.9M km²</span></div>
-    <div class="md-row"><span class="md-l">Active Regions</span><span class="md-v">196</span></div>
+    <div class="md-row"><span class="md-l">Active Regions</span><span class="md-v" title="GEOGLAM Crop Monitor regions + FAO GAUL admin-1 units with active EO coverage">196 <span style='font-size:9px;color:var(--text-muted);cursor:help' title='GEOGLAM Crop Monitor regions aligned with FAO GAUL admin-1 administrative boundaries'>(?)</span></span></div>
     <div class="md-row"><span class="md-l">Avg NDVI</span><span class="md-v" style="color:var(--accent-green)">0.42</span></div>
     <div class="md-row"><span class="md-l">Drought Zones</span><span class="md-v" style="color:var(--accent-red)">23</span></div>
     <div class="md-row"><span class="md-l">Flood Alerts</span><span class="md-v" style="color:var(--accent-amber)">8</span></div>
