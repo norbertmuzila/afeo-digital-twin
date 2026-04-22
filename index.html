@@ -248,9 +248,11 @@
             </div>
 
             <!-- Satellite External API Controls -->
-            <div style="background: var(--bg-primary); border-radius: 4px; padding: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); border: 1px solid var(--border);">
-              <div style="font-size:10px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:8px;">Satellite Data Sources</div>
-              <div style="display:flex; flex-direction:column; gap:8px;">
+            <details class="sat-dropdown" style="background: var(--bg-primary); border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.3); border: 1px solid var(--border);">
+              <summary style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; padding:10px; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+                <span>Satellite Data Sources</span><span class="dd-icon">▼</span>
+              </summary>
+              <div style="display:flex; flex-direction:column; gap:8px; padding: 0 10px 10px 10px;">
                 <label style="font-size:12px; display:flex; align-items:center; cursor:pointer;">
                   <input type="checkbox" id="sat-nasa" style="margin-right:6px;" onchange="toggleNasaGibs()"> NASA GIBS (Live)
                 </label>
@@ -267,7 +269,7 @@
                   <input type="checkbox" id="sat-cdse" style="margin-right:6px;" disabled> Copernicus CDSE (Free)
                 </label>
               </div>
-            </div>
+            </details>
           </div>
 
           <div class="map-legend-box" style="position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: var(--bg-primary); padding: 12px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid var(--border);">
