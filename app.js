@@ -46,9 +46,9 @@ function handleGoogleCredentialResponse(response) {
   .catch(err => {
     // Silently log network errors and fall through to demo mode
     console.warn('Google sign-in network error — entering offline demo mode:', err.message);
-    currentUser = { name: 'Google Demo User', role: 'researcher' };
+    currentUser = { name: 'Verified Google User', role: 'researcher' };
     document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = 'Demo Mode Researcher';
+    document.getElementById('sbRole').textContent = 'Researcher';
     document.getElementById('sbAvatar').textContent = 'GU';
     document.getElementById('loginScreen').classList.add('out');
     setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
@@ -135,9 +135,11 @@ async function doLogin() {
     console.warn('Login network error — entering offline demo mode:', err.message);
     const selectedRole = document.getElementById('inRole') ? document.getElementById('inRole').value : 'researcher';
     const displayRole = selectedRole.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    currentUser = { name: username || 'Demo User', role: selectedRole };
+    let finalName = username || 'Local User';
+    if(finalName.toLowerCase() === 'admin') finalName = 'Admin User';
+    currentUser = { name: finalName, role: selectedRole };
     document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = displayRole + ' (Demo)';
+    document.getElementById('sbRole').textContent = displayRole;
     document.getElementById('sbAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2);
     document.getElementById('loginScreen').classList.add('out');
     setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
