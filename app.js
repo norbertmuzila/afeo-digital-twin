@@ -544,8 +544,18 @@ function renderFields(fields) {
 
 // ─── WATER PAGE ───
 async function loadWater() {
-  const data = await apiFetch('/water');
-  if (!data) return;
+  let data = await apiFetch('/water');
+  if (!data) {
+    console.warn("Using offline fallback data for Water Resources.");
+    data = {
+      waterBodies: [
+        {name: "Lake Victoria", region: "Africa", type: "Reservoir", level: "23.53", capacity: 44, trend: "Stable", status: "watch"},
+        {name: "Murray River", region: "Oceania", type: "River", level: "12.1", capacity: 32, trend: "-0.5%", status: "critical"},
+        {name: "Colorado River", region: "N. America", type: "River", level: "18.4", capacity: 41, trend: "-1.2%", status: "low"},
+        {name: "Amazon River", region: "S. America", type: "River", level: "41.2", capacity: 88, trend: "+0.1%", status: "normal"}
+      ]
+    };
+  }
   document.getElementById('waterStats').innerHTML = `
     <div class="stat-card"><div class="sc-icon b">🌊</div><div class="sc-label">Global Reservoir Volume</div><div class="sc-value" style="color:var(--accent-blue)">6,840 km³</div><div class="sc-change dn">▼ 3.2% YoY</div></div>
     <div class="stat-card"><div class="sc-icon c">🏔️</div><div class="sc-label">Snow Water Equivalent</div><div class="sc-value" style="color:var(--accent-cyan)">2,120 km³</div><div class="sc-change up">▲ 8.1%</div></div>
@@ -554,7 +564,7 @@ async function loadWater() {
   `;
   const pillStatus = { normal:'ok', critical:'crit', watch:'warn', recovering:'warn', low:'crit' };
   const trendColor = t => t.includes('+') || t.includes('Stable') ? 'var(--accent-green)' : 'var(--accent-red)';
-  const tbody = data.waterBodies.map(w => `<tr><td>${w.name}</td><td>${w.region}</td><td>${w.type}</td><td class="mono">${w.level}</td><td class="mono">${w.capacity}%</td><td style="color:${trendColor(w.trend)}">${w.trend}</td><td><span class="pill ${pillStatus[w.status]||'info'}">${w.status.charAt(0).toUpperCase()+w.status.slice(1)}</span></td></tr>`).join('');
+  const tbody = data.waterBodies.map(w => `<tr onclick="openWaterAnalytics('${w.name}', '${w.capacity}')"><td>${w.name}</td><td>${w.region}</td><td>${w.type}</td><td class="mono">${w.level}</td><td class="mono">${w.capacity}%</td><td style="color:${trendColor(w.trend)}">${w.trend}</td><td><span class="pill ${pillStatus[w.status]||'info'}">${w.status.charAt(0).toUpperCase()+w.status.slice(1)}</span></td></tr>`).join('');
   document.getElementById('waterTable').innerHTML = `<div class="panel-hdr"><h3>💧 Major Water Bodies</h3><span class="panel-badge">GRACE-FO / Sentinel-3</span></div><table class="dtable"><thead><tr><th>Name</th><th>Region</th><th>Type</th><th>Level</th><th>Cap.</th><th>Trend</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table>`;
 }
 
@@ -811,12 +821,182 @@ let chatHistory = [
   { role: "system", content: "You are the WAFEO Digital Twin AI Assistant. You help users understand Earth Observation data, NDVI scores, agriculture, water resources, and food security warnings in Africa. Be concise, professional, and intelligent. Format clearly." }
 ];
 
-const aiSendBtn = document.getElementById('aiSendBtn');
-const chatWindow = document.getElementById('aiChatWindow');
 
-if (aiInput && aiSendBtn && chatWindow) {
-  aiSendBtn.addEventListener('click', handleUserMsg);
-  aiInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') handleUserMsg(); });
+
+// ─── WATER BODY ANALYTICS ───
+let wbChartInstance = null;
+let wbFullDataset = [];
+let wbFullDates = [];
+
+function seededRandom(seed) {
+  var x = Math.sin(seed++) * 10000;
+  return x - Math.floor(x);
+}
+
+function closeWaterAnalytics() {
+  document.getElementById('waterAnalyticsModal').style.display = 'none';
+}
+
+function openWaterAnalytics(name, capacityStr) {
+  document.getElementById('waterAnalyticsModal').style.display = 'flex';
+  document.getElementById('wbModalTitle').textContent = name;
+
+  // Set default dates (1 year ago to today)
+  const today = new Date('2026-04-22');
+  const lastYear = new Date('2025-05-01');
+  
+  document.getElementById('wbStartDate').value = lastYear.toISOString().split('T')[0];
+  document.getElementById('wbEndDate').value = today.toISOString().split('T')[0];
+
+  // Derive a pseudo-random seed from the water body name
+  let seed = 0;
+  for (let i = 0; i < name.length; i++) seed += name.charCodeAt(i);
+
+  // Base metrics
+  const baseLevel = 15 + (seededRandom(seed) * 50); // 15m to 65m
+  const baseTemp = 12 + (seededRandom(seed + 1) * 15); // 12C to 27C
+  const baseSalinity = 100 + (seededRandom(seed + 2) * 400); // 100 to 500 uS/cm
+  const capacity = parseFloat(capacityStr) || 44;
+  const currentVolGL = Math.round((capacity / 100) * (500 + seededRandom(seed+3)*2000));
+
+  // Update KPI displays (using today's date context)
+  const dtStr = "22/04/2026 07:00";
+  document.getElementById('wbKpiLevel').textContent = (baseLevel + (seededRandom(seed+4)*2)).toFixed(2);
+  document.getElementById('wbKpiLevelDate').textContent = dtStr;
+  
+  document.getElementById('wbKpiVolPerc').textContent = capacity + '%';
+  document.getElementById('wbKpiVolData').textContent = currentVolGL + ' GL';
+  document.getElementById('wbKpiVolDate').textContent = dtStr;
+  
+  const dashArray = `${capacity}, 100`;
+  document.getElementById('wbKpiVolChart').setAttribute('stroke-dasharray', dashArray);
+  let strokeColor = '#005c99';
+  if (capacity < 30) strokeColor = '#d73027';
+  else if (capacity < 50) strokeColor = '#f59e0b';
+  document.getElementById('wbKpiVolChart').setAttribute('stroke', strokeColor);
+
+  document.getElementById('wbKpiTemp').textContent = baseTemp.toFixed(1) + '°C';
+  document.getElementById('wbKpiTempDate').textContent = dtStr;
+
+  document.getElementById('wbKpiSalinity').textContent = baseSalinity.toFixed(1);
+  document.getElementById('wbKpiSalDate').textContent = dtStr;
+
+  // Generate 365 days of synthetic history
+  wbFullDates = [];
+  wbFullDataset = [];
+  
+  let currentLevel = baseLevel;
+  for (let i = 0; i <= 365; i++) {
+    const d = new Date('2025-05-01');
+    d.setDate(d.getDate() + i);
+    wbFullDates.push(d.toISOString().split('T')[0]);
+    
+    // Smooth seasonal sine wave plus slight random noise
+    const dayOfYear = d.getTime() / (1000 * 60 * 60 * 24);
+    const seasonality = Math.sin(dayOfYear * (Math.PI * 2 / 365) + seed);
+    
+    currentLevel += (seasonality * 0.05) + ((seededRandom(seed + i) - 0.5) * 0.06);
+    wbFullDataset.push(currentLevel);
+  }
+
+  renderWaterAnalyticsChart(wbFullDates, wbFullDataset);
+}
+
+function applyWaterAnalyticsDates() {
+  const s = document.getElementById('wbStartDate').value;
+  const e = document.getElementById('wbEndDate').value;
+  if (!s || !e) return;
+
+  const sTime = new Date(s).getTime();
+  const eTime = new Date(e).getTime();
+
+  const filteredDates = [];
+  const filteredData = [];
+
+  for (let i = 0; i < wbFullDates.length; i++) {
+    const t = new Date(wbFullDates[i]).getTime();
+    if (t >= sTime && t <= eTime) {
+      filteredDates.push(wbFullDates[i]);
+      filteredData.push(wbFullDataset[i]);
+    }
+  }
+
+  renderWaterAnalyticsChart(filteredDates, filteredData);
+}
+
+function renderWaterAnalyticsChart(labels, data) {
+  const ctx = document.getElementById('waterBodyChartCanvas').getContext('2d');
+  
+  if (wbChartInstance) {
+    wbChartInstance.destroy();
+  }
+
+  // Ensure Chart.js is loaded
+  if (typeof Chart === 'undefined') {
+    console.error('Chart.js not loaded!');
+    return;
+  }
+
+  wbChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Water level (m)',
+        data: data,
+        borderColor: '#005c99',
+        borderWidth: 2.5,
+        fill: false,
+        pointRadius: 0, // hide points by default like reference image
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: '#005c99',
+        tension: 0.4 // smoothed curves
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false, // ensures hover traces nicely across the line
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          titleColor: '#333',
+          bodyColor: '#005c99',
+          bodyFont: { weight: 'bold', size: 14 },
+          borderColor: '#ddd',
+          borderWidth: 1,
+          padding: 10,
+          displayColors: false,
+          callbacks: {
+            label: function(context) {
+              return 'Water level: ' + context.parsed.y.toFixed(2) + ' m';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            maxTicksLimit: 12,
+            callback: function(val, index) {
+              const d = new Date(labels[index]);
+              const month = d.toLocaleString('en-US', { month: 'short' });
+              return month + " '" + d.getFullYear().toString().substr(-2);
+            }
+          }
+        },
+        y: {
+          title: { display: true, text: 'Water level (m)', color: '#666', font: { size: 12 } },
+          grid: { color: '#efefef' }
+        }
+      }
+    }
+  });
 }
 
 async function handleUserMsg() {

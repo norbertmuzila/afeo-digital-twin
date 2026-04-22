@@ -11,6 +11,8 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <!-- Google Identity Services -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Chart.js for Water Body Analytics -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -503,6 +505,117 @@
   <div class="footer-left">★ CREATED BY <strong>NORBERT MUZILA</strong></div>
   <div class="footer-center">Water&nbsp;<span class="footer-sep">|</span>&nbsp;Agriculture&nbsp;<span class="footer-sep">|</span>&nbsp;Food Security&nbsp;<span class="footer-sep">|</span>&nbsp;EO</div>
   <div class="footer-right">© 2026 <span style="color:var(--accent-blue); font-weight:700;">WAFEO</span></div>
+</div>
+
+<!-- ═══════════════ WATER ANALYTICS MODAL ═══════════════ -->
+<div class="modal-overlay" id="waterAnalyticsModal" style="display:none; align-items:center;">
+  <div class="wb-modal" style="width: 1000px; max-width: 95%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; background: #ffffff; padding: 24px; border-radius: 4px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+    <!-- Modal Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--accent-blue); padding-bottom: 12px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="background:var(--accent-blue); color:#fff; width:36px; height:36px; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:18px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12c-4 0-4-4-10-4S2 12 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"></path><path d="M12 12v6"></path><path d="M16 12v5"></path><path d="M8 12v5"></path></svg>
+        </div>
+        <h2 id="wbModalTitle" style="margin:0; font-size:28px; color:#000; font-family:'Segoe UI', sans-serif;">Lake Victoria (Murray)</h2>
+      </div>
+      <button onclick="closeWaterAnalytics()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-muted);">&times;</button>
+    </div>
+
+    <!-- KPI Dashboard Row -->
+    <div class="wb-kpi-row" style="display: flex; gap: 4px; margin-bottom: 24px; align-items: stretch; height: 70px;">
+      
+      <!-- Reservoir Level -->
+      <div style="flex:1.2; display:flex; flex-direction:row; color:#fff; align-items:center;">
+        <div style="background:#005c99; width:30px; height:100%; display:flex; justify-content:center; align-items:center; border-right:1px solid #fff;">
+          <svg style="width:16px; height:30px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2"/><path d="M4 14h16"/><path d="M4 18h16"/><path d="M4 10h16"/><path d="M4 6h16"/></svg>
+        </div>
+        <div style="background:#e6e1d8; color:#000; flex:1; height:100%; padding:8px 12px; display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#333;">Reservoir level</div>
+          <div style="margin-top:-2px;"><span id="wbKpiLevel" style="font-size:22px; font-weight:700;">23.53</span><span style="font-size:12px;font-weight:600;"> m</span></div>
+          <div id="wbKpiLevelDate" style="font-size:10px; color:#666; margin-top:2px;">22/04/2026 07:00</div>
+        </div>
+      </div>
+
+      <!-- Volume -->
+      <div style="flex:1.2; display:flex; flex-direction:row; color:#000; align-items:center;">
+        <div style="background:#e6e1d8; width:70px; height:100%; display:flex; justify-content:center; align-items:center; border-right:2px solid #fff;">
+           <div style="position:relative; width:46px; height:46px;">
+             <!-- Simplified CSS donut -->
+             <svg viewBox="0 0 36 36" style="width:46px; height:46px; border-radius:50%; background:#d2ccc1;">
+                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#005c99" stroke-width="4" stroke-dasharray="44, 100" id="wbKpiVolChart" />
+             </svg>
+             <div id="wbKpiVolPerc" style="position:absolute; top:0; left:0; width:100%; height:100%; display:flex; justify-content:center; align-items:center; font-size:12px; font-weight:700; color:#333;">44%</div>
+           </div>
+        </div>
+        <div style="background:#e6e1d8; flex:1; height:100%; padding:8px 12px; display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#333;">Volume</div>
+          <div style="margin-top:-2px;"><span id="wbKpiVolData" style="font-size:18px; font-weight:700;">297 GL</span></div>
+          <div id="wbKpiVolDate" style="font-size:10px; color:#666; margin-top:4px;">22/04/2026 07:00</div>
+        </div>
+      </div>
+
+      <!-- Water Temp -->
+      <div style="flex:1; display:flex; flex-direction:row; background:#e6e1d8; color:#000; align-items:center;">
+        <div style="width:40px; height:100%; display:flex; justify-content:center; align-items:center;">
+          <div style="background:#e48b81; width:26px; height:26px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:#fff;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></path></svg>
+          </div>
+        </div>
+        <div style="flex:1; height:100%; padding:8px 0; display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#333;">Water temp</div>
+          <div style="margin-top:-2px;"><span id="wbKpiTemp" style="font-size:18px; font-weight:700;">17.2°C</span></div>
+          <div id="wbKpiTempDate" style="font-size:10px; color:#666; margin-top:4px;">22/04/2026 07:00</div>
+        </div>
+      </div>
+
+      <!-- Salinity -->
+      <div style="flex:1; display:flex; flex-direction:row; background:#e6e1d8; color:#000; align-items:center; border-left:4px solid #fff;">
+        <div style="width:40px; height:100%; display:flex; justify-content:center; align-items:center;">
+          <div style="background:#b781e4; width:26px; height:26px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:#fff;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h18"></path><path d="M3 17h18"></path><path d="M3 21h18"></path><path d="M3 9h18"></path><path d="M3 5h18"></path></svg>
+          </div>
+        </div>
+        <div style="flex:1; height:100%; padding:8px 0; display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#333;">Salinity</div>
+          <div style="margin-top:-2px;"><span id="wbKpiSalinity" style="font-size:18px; font-weight:700;">297.3</span><span style="font-size:11px;font-weight:600;"> µS/cm</span></div>
+          <div id="wbKpiSalDate" style="font-size:10px; color:#666; margin-top:4px;">22/04/2026 07:00</div>
+        </div>
+      </div>
+
+      <!-- Forecast -->
+      <div style="flex:1; display:flex; flex-direction:row; background:#e6e1d8; color:#000; align-items:center; border-left:4px solid #fff;">
+        <div style="width:40px; height:100%; display:flex; justify-content:center; align-items:center;">
+          <div style="background:#5e666a; width:26px; height:26px; border-radius:50%; display:flex; justify-content:center; align-items:center; color:#fff;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+        </div>
+        <div style="flex:1; height:100%; padding:8px 0; display:flex; flex-direction:column; justify-content:center;">
+          <div style="font-size:12px; color:#333; margin-top:14px;">Volume Forecast</div>
+        </div>
+      </div>
+    </div>
+    
+    <div style="background:#005c99; width:100%; height:8px; margin-bottom:12px;"></div>
+
+    <!-- Date Filters -->
+    <div style="display:flex; justify-content:flex-end; gap:12px; margin-bottom:16px;">
+       <div style="display:flex; align-items:center; gap:6px;">
+         <label for="wbStartDate" style="font-size:12px; font-weight:600;">Start:</label>
+         <input type="date" id="wbStartDate" class="wb-date-input">
+       </div>
+       <div style="display:flex; align-items:center; gap:6px;">
+         <label for="wbEndDate" style="font-size:12px; font-weight:600;">End:</label>
+         <input type="date" id="wbEndDate" class="wb-date-input">
+       </div>
+       <button class="wb-apply-btn" onclick="applyWaterAnalyticsDates()">Apply</button>
+    </div>
+
+    <!-- Chart -->
+    <div style="height: 400px; width: 100%; position:relative;">
+      <canvas id="waterBodyChartCanvas"></canvas>
+    </div>
+
+  </div>
 </div>
 
 <script src="app.js"></script>

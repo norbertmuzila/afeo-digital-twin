@@ -458,6 +458,22 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .pill.info { background: rgba(59,130,246,0.1); color: var(--accent-blue); }
 
 /* ─── ALERTS ─── */
+.wb-date-input {
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+  outline: none;
+}
+.wb-apply-btn {
+  background: #005c99; color: #fff;
+  border: none; padding: 6px 16px; border-radius: 4px;
+  font-weight: 600; cursor: pointer; font-family: 'Segoe UI', sans-serif;
+  transition: background 0.2s;
+}
+.wb-apply-btn:hover { background: #004675; }
+
 .alert-card {
   display: flex; gap: 14px; padding: 14px; border-radius: 10px;
   margin-bottom: 8px; border: 1px solid; transition: transform 0.15s;
