@@ -221,6 +221,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
   width: var(--sidebar-w); background: #ffffff; border-right: 1px solid var(--border);
   display: flex; flex-direction: column; flex-shrink: 0; z-index: 200;
   border-top: 1px solid var(--border); /* Provide top alignment if needed */
+  padding-bottom: 38px; /* Clear the footer */
 }
 .sidebar::after { display: none; }
 .sb-header {
