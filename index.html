@@ -30,12 +30,12 @@
       
       <div class="fg-simple">
         <label>Username</label>
-        <input type="text" id="inUser" placeholder="R204737E" value="admin">
+        <input type="text" id="inUser" placeholder="Username" value="admin">
       </div>
       
       <div class="fg-simple">
         <label>Password</label>
-        <input type="password" id="inPass" placeholder="Enter your password" value="admin123">
+        <input type="password" id="inPass" placeholder="Enter your password" value="wafeo2024">
       </div>
       
       <div class="fg-simple fg-flex">
@@ -69,9 +69,37 @@
       
       <div class="login-nb">
         <strong>NB:</strong> Forgot Password? <a href="#">Reset password</a><br>
-        <span style="font-weight: normal; margin-top: 8px; display: inline-block;">New user? <a href="#">Request Access</a></span>
+        <span style="font-weight: normal; margin-top: 8px; display: inline-block;">New user? <a href="#" onclick="event.preventDefault(); document.getElementById('registerModal').classList.add('show');">Sign Up</a></span>
       </div>
     </div>
+</div>
+
+<!-- ═══════════════ REGISTRATION MODAL ═══════════════ -->
+<div id="registerModal" class="modal-overlay">
+  <div class="modal-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+      <h2 style="font-size:20px; font-weight:700; color:var(--accent-blue);">Create Account</h2>
+      <button onclick="document.getElementById('registerModal').classList.remove('show')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;">&times;</button>
+    </div>
+    <div class="register-error" id="registerError"></div>
+    <div class="fg-simple"><label>Full Name</label><input type="text" id="regName" placeholder="Your full name"></div>
+    <div class="fg-simple"><label>Email Address</label><input type="email" id="regEmail" placeholder="you@example.com"></div>
+    <div class="fg-simple"><label>Username</label><input type="text" id="regUsername" placeholder="Choose a username"></div>
+    <div class="fg-simple"><label>Password</label><input type="password" id="regPassword" placeholder="Create a password"></div>
+    <div class="fg-simple"><label>Region</label>
+      <select id="regRegion" class="emhare-select">
+        <option value="Africa">Africa</option>
+        <option value="Asia">Asia</option>
+        <option value="Europe">Europe</option>
+        <option value="North America">North America</option>
+        <option value="South America">South America</option>
+        <option value="Oceania">Oceania</option>
+        <option value="Global">Global</option>
+      </select>
+    </div>
+    <button class="btn-emhare" id="btnRegister" onclick="doRegister()" style="margin-top:10px;">CREATE ACCOUNT</button>
+    <div style="text-align:center; margin-top:12px; font-size:12px; color:var(--text-muted);">Already have an account? <a href="#" onclick="event.preventDefault(); document.getElementById('registerModal').classList.remove('show');">Log In</a></div>
+  </div>
 </div>
 
 <!-- ═══════════════ APP ═══════════════ -->
@@ -378,7 +406,7 @@
               <div style="font-size:18px;font-weight:700;color:#d73027">Severe Risk</div>
             </div>
           </div>
-          <p><strong>Active Severe Zones:</strong> Horn of Africa (Ethiopia, Kenya, Somalia) — 20–25 million people need humanitarian food assistance. 6.5 million in Somalia in IPC Phase 3+ (Feb–Mar 2026). IPC Phase 5 (Famine) risk if March–May 2026 rains fail. Driver: historic OND 2025 dry season (worst on record), La Niña, strongly negative Indian Ocean Dipole. Rainfall deficits 30–50% of normal in worst zones. <em style="font-size:11px;color:var(--text-muted)">Source: FEWS NET, IPC, WFP — last updated ${new Date().toISOString().split('T')[0]}</em></p>
+          <p><strong>Active Severe Zones:</strong> Horn of Africa (Ethiopia, Kenya, Somalia) — 20–25 million people need humanitarian food assistance. 6.5 million in Somalia in IPC Phase 3+ (Feb–Mar 2026). IPC Phase 5 (Famine) risk if March–May 2026 rains fail. Driver: historic OND 2025 dry season (worst on record), La Niña, strongly negative Indian Ocean Dipole. Rainfall deficits 30–50% of normal in worst zones. <em style="font-size:11px;color:var(--text-muted)">Source: FEWS NET, IPC, WFP — last updated 2026-04-22</em></p>
           <p><strong>Water Balance:</strong> <em style="font-size:11px;color:var(--text-muted)">[Illustrative]</em> Supply 1,200M m³ vs Demand 1,800M m³ — Deficit risk HIGH in dry season. <em style="font-size:11px;color:var(--text-muted)">Connect to FAO AQUASTAT / WaPOR v3 for live values.</em></p>
         </div>
       </div>
@@ -394,7 +422,7 @@
             <div style="font-size:12px;margin-bottom:8px"><strong>Evidence:</strong> SPI −1.8, NDVI down 22% YoY, water table drop 35cm (GRACE-FO), NISAR soil moisture at 12% (−4% anomaly)</div>
             <div style="font-size:12px;margin-bottom:8px"><strong>Impact (90 days):</strong> 20–25M people need humanitarian food assistance. 6.5M in Somalia in IPC Phase 3+. IPC Phase 5 (Famine) risk if MAM 2026 rains fail. Rainfall deficits 30–50% in worst zones.</div>
             <div style="font-size:12px;margin-bottom:8px"><strong>Action:</strong> Scale up emergency water & food transfers. Pre-position supplies in pastoral zones. Deploy field teams. Prioritize sub-counties via NISAR+CHIRPS+IPC pipeline.</div>
-            <div style="font-size:10px;color:var(--text-muted);margin-top:6px">Source: FEWS NET, IPC, WFP — last updated ${new Date().toISOString().split('T')[0]}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:6px">Source: FEWS NET, IPC, WFP — last updated 2026-04-22</div>
           </div>
           <div style="background:var(--bg-deep);border-left:4px solid var(--accent-amber);padding:14px;border-radius:6px;margin:12px 0">
             <div style="font-weight:700;color:var(--accent-amber);margin-bottom:6px">⚠️ WATCH: Yield Loss — South Asia Wheat Belt</div>
@@ -437,7 +465,14 @@
       <!-- Live News moved here from Dashboard -->
       <div class="panel full" id="newsPanel" style="margin-top:20px;"></div>
     </div></div>
-    <div class="page" id="pg-settings"><div class="pg-pad"><div class="panel"><div class="module-hero"><span class="mh-icon">⚙️</span><h3>Platform Settings</h3><p>Manage satellite data sources, alert thresholds, notification preferences, user roles, and API integrations. Configure custom NDVI thresholds for your specific crop types and regions.</p></div></div></div></div>
+    <div class="page" id="pg-settings"><div class="pg-pad">
+      <div class="panel"><div class="module-hero"><span class="mh-icon">⚙️</span><h3>Platform Settings</h3><p>Manage satellite data sources, alert thresholds, notification preferences, user roles, and API integrations. Configure custom NDVI thresholds for your specific crop types and regions.</p></div></div>
+      <!-- Admin User Profiles Panel -->
+      <div class="panel" id="adminUsersPanel" style="margin-top:20px; display:none;">
+        <div class="panel-hdr"><h3>👥 Registered Users</h3><span class="panel-badge" id="userCountBadge" style="background:var(--accent-blue)">0 Users</span></div>
+        <div id="userProfilesList" style="padding:12px;"></div>
+      </div>
+    </div></div>
     
     <!-- ═══ FLOATING AI WIDGET ═══ -->
     <div id="aiWidgetContainer">
@@ -462,6 +497,13 @@
 </div>
 
 <div class="ttp" id="ttp"></div>
+
+<!-- ═══════════════ FIXED FOOTER BAR ═══════════════ -->
+<div id="platformFooter" class="platform-footer">
+  <div class="footer-left">★ CREATED BY <strong>NORBERT MUZILA</strong></div>
+  <div class="footer-center">Water&nbsp;<span class="footer-sep">|</span>&nbsp;Agriculture&nbsp;<span class="footer-sep">|</span>&nbsp;Food Security&nbsp;<span class="footer-sep">|</span>&nbsp;EO</div>
+  <div class="footer-right">© 2026 <span style="color:var(--accent-blue); font-weight:700;">WAFEO</span></div>
+</div>
 
 <script src="app.js"></script>
 </body>

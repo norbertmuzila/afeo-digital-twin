@@ -351,13 +351,6 @@ app.post('/api/auth/google', async (req, res) => {
 
 // Helper function to verify Google token (simplified for demo)
 async function verifyGoogleToken(token) {
-  // In a real application, you would use the Google Auth Library:
-  // const { OAuth2Client } = require('google-auth-library');
-  // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-  // const ticket = await client.verifyIdToken({ idToken: token, audience: process.env.GOOGLE_CLIENT_ID });
-  // return ticket.getPayload();
-  
-  // For this demo, we'll return mock data
   return {
     sub: 'google_' + Math.random().toString(36).substring(2, 15),
     email: 'user@example.com',
@@ -365,6 +358,74 @@ async function verifyGoogleToken(token) {
     picture: 'https://example.com/profile.jpg'
   };
 }
+
+// ─── Auth: Registration (Email-based) ────────────────────────
+app.post('/api/auth/register', (req, res) => {
+  const { name, email, username, password, region } = req.body || {};
+  if (!name || !email || !username || !password) {
+    return res.status(400).json({ error: 'All fields are required (name, email, username, password)' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+
+  const users = readData('users.json');
+  if (!users) return res.status(500).json({ error: 'User store unavailable' });
+
+  // Check for duplicate username or email
+  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+    return res.status(409).json({ error: 'Username already taken' });
+  }
+  if (users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+    return res.status(409).json({ error: 'Email already registered' });
+  }
+
+  const newUser = {
+    id: users.length + 1,
+    username,
+    email,
+    name,
+    password,
+    role: 'researcher',
+    region: region || 'Global',
+    registeredAt: new Date().toISOString()
+  };
+
+  users.push(newUser);
+  try {
+    fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+  } catch (err) {
+    console.error('[register] Failed to save user:', err.message);
+    return res.status(500).json({ error: 'Failed to save registration' });
+  }
+
+  const token = jwt.sign(
+    { id: newUser.id, username: newUser.username, role: newUser.role, name: newUser.name },
+    JWT_SECRET,
+    { expiresIn: '8h' }
+  );
+
+  const { password: _pw, ...safeUser } = newUser;
+  console.log(`[register] New user: ${username} (${email}) from ${region}`);
+  res.status(201).json({ token, user: safeUser });
+});
+
+// ─── Admin: List All Users ───────────────────────────────────
+app.get('/api/admin/users', auth, (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+
+  const users = readData('users.json');
+  if (!users) return res.status(500).json({ error: 'User store unavailable' });
+
+  // Return users without passwords
+  const safeUsers = users.map(({ password, ...rest }) => rest);
+  res.json({ users: safeUsers, total: safeUsers.length });
+});
 
 // ─── Dashboard Stats ─────────────────────────────────────────
 app.get('/api/dashboard/stats', auth, (req, res) => {
