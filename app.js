@@ -51,7 +51,7 @@ function handleGoogleCredentialResponse(response) {
 }
 
 function initGoogleSignIn() {
-  const googleClientId = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+  const googleClientId = '681642080635-fpqmjobr8hnt63adria7qmlk3kar8kej.apps.googleusercontent.com';
   
   google.accounts.id.initialize({
     client_id: googleClientId,
