@@ -254,7 +254,9 @@ app.post('/api/auth/login', (req, res) => {
   if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
   const user = users.find(u =>
-    u.username.toLowerCase() === username.toLowerCase() && u.password === password
+    (u.username.toLowerCase() === username.toLowerCase() || 
+     (u.email && u.email.toLowerCase() === username.toLowerCase())) && 
+    u.password === password
   );
 
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
