@@ -2,7 +2,7 @@
   {
     "id": 1,
     "username": "admin",
-    "password": "wafeo2024",
+    "password": "6e45f8c10737b1f04577fe7160ef774c17a43b84c5919b90b7aad1b1245fbe39",
     "name": "System Admin",
     "role": "admin",
     "email": "admin@wafeo.org",
@@ -11,7 +11,7 @@
   {
     "id": 2,
     "username": "farmer",
-    "password": "wafeo2024",
+    "password": "6e45f8c10737b1f04577fe7160ef774c17a43b84c5919b90b7aad1b1245fbe39",
     "name": "John Mwangi",
     "role": "farmer",
     "email": "j.mwangi@wafeo.org",
@@ -20,7 +20,7 @@
   {
     "id": 3,
     "username": "policy",
-    "password": "wafeo2024",
+    "password": "6e45f8c10737b1f04577fe7160ef774c17a43b84c5919b90b7aad1b1245fbe39",
     "name": "Dr. Amara Diallo",
     "role": "policy",
     "email": "a.diallo@wafeo.org",
@@ -29,7 +29,7 @@
   {
     "id": 4,
     "username": "researcher",
-    "password": "wafeo2024",
+    "password": "6e45f8c10737b1f04577fe7160ef774c17a43b84c5919b90b7aad1b1245fbe39",
     "name": "Prof. Lena Fischer",
     "role": "researcher",
     "email": "l.fischer@wafeo.org",

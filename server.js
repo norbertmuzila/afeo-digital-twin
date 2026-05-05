@@ -10,6 +10,7 @@ const path     = require('path');
 const fs       = require('fs');
 const jwt      = require('jsonwebtoken');
 const compression = require('compression');
+const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 
 const app  = express();
@@ -17,6 +18,10 @@ const PORT = process.env.PORT || 8080;
 const JWT_SECRET = process.env.JWT_SECRET || 'wafeo-secret-2024-change-in-production';
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '681642080635-fpqmjobr8hnt63adria7qmlk3kar8kej.apps.googleusercontent.com';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
+
+function hashPassword(password) {
+  return crypto.createHash('sha256').update(password).digest('hex');
+}
 
 // ─── CORS — allow GitHub Pages frontend ─────────────────────
 app.use(cors({
@@ -258,7 +263,7 @@ app.post('/api/auth/login', (req, res) => {
   const user = users.find(u =>
     (u.username.toLowerCase() === username.toLowerCase() || 
      (u.email && u.email.toLowerCase() === username.toLowerCase())) && 
-    u.password === password
+    u.password === hashPassword(password)
   );
 
   if (!user) return res.status(401).json({ error: 'Invalid credentials' });
@@ -392,7 +397,7 @@ app.post('/api/auth/register', (req, res) => {
     username,
     email,
     name,
-    password,
+    password: hashPassword(password),
     role: 'researcher',
     region: region || 'Global',
     registeredAt: new Date().toISOString()

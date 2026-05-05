@@ -44,16 +44,9 @@ function handleGoogleCredentialResponse(response) {
     initMapOnce();
   })
   .catch(err => {
-    // Silently log network errors and fall through to demo mode
-    console.warn('Google sign-in network error — entering offline demo mode:', err.message);
-    currentUser = { name: 'Verified Google User', role: 'researcher' };
-    document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = 'Researcher';
-    document.getElementById('sbAvatar').textContent = 'GU';
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
+    console.error('Google sign-in error:', err);
+    errEl.textContent = 'Server unavailable. Please try again later.';
+    errEl.classList.add('show');
   });
 }
 
@@ -131,20 +124,9 @@ async function doLogin() {
     loadDashboard();
     initMapOnce();
   } catch (err) {
-    // Silently log network errors and fall through to demo mode
-    console.warn('Login network error — entering offline demo mode:', err.message);
-    const selectedRole = document.getElementById('inRole') ? document.getElementById('inRole').value : 'researcher';
-    const displayRole = selectedRole.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    let finalName = username || 'Local User';
-    if(finalName.toLowerCase() === 'admin') finalName = 'Admin User';
-    currentUser = { name: finalName, role: selectedRole };
-    document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = displayRole;
-    document.getElementById('sbAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2);
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
+    console.error('Login error:', err);
+    errEl.textContent = 'Server unavailable. Please try again later.';
+    errEl.classList.add('show');
   }
 }
 
