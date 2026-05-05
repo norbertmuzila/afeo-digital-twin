@@ -292,53 +292,50 @@ app.post('/api/auth/google', async (req, res) => {
   }
 
   try {
-    let payload;
-    try {
-      const ticket = await googleClient.verifyIdToken({
-        idToken: credential,
-        audience: GOOGLE_CLIENT_ID, 
-      });
-      payload = ticket.getPayload();
-    } catch(err) {
-      // Mock fallback for demonstration purposes if Client ID isn't configured yet
-      if (GOOGLE_CLIENT_ID.startsWith('YOUR_GOOGLE_CLIENT')) {
-        console.warn('Mocking Google Sign-In because CLIENT_ID is not set.');
-        payload = {
-          email: 'demo.user@gmail.com',
-          name: 'Demo User',
-          sub: '1234567890'
-        };
-      } else {
-        throw err;
-      }
-    }
+    // Verify the Google ID token cryptographically — no mock fallback
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: GOOGLE_CLIENT_ID, 
+    });
+    const payload = ticket.getPayload();
 
     if (!payload || !payload.email) {
       return res.status(401).json({ error: 'Invalid Google token' });
     }
 
-    const userData = payload;
+    // Only allow verified Google accounts
+    if (!payload.email_verified) {
+      return res.status(403).json({ error: 'Google email is not verified. Please verify your email first.' });
+    }
 
     // Check if user exists in our system, or create a new one
     const users = readData('users.json');
     if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
-    let user = users.find(u => u.email === userData.email);
+    let user = users.find(u => u.email && u.email.toLowerCase() === payload.email.toLowerCase());
     
-    // If user doesn't exist, create a new one with default role
+    // If user doesn't exist, auto-register them (Google Sign-Up)
     if (!user) {
       const newUser = {
         id: users.length + 1,
-        username: userData.email.split('@')[0],
-        email: userData.email,
-        name: userData.name || userData.email.split('@')[0],
-        role: 'farmer', // default role for new users
-        password: '', // no password for Google users
-        googleId: userData.sub
+        username: payload.email.split('@')[0],
+        email: payload.email,
+        name: payload.name || payload.email.split('@')[0],
+        role: 'researcher', // default role for new Google users
+        password: '', // no password for Google-authenticated users
+        googleId: payload.sub,
+        picture: payload.picture || '',
+        authProvider: 'google',
+        registeredAt: new Date().toISOString()
       };
       users.push(newUser);
-      // In a real app, you would save this to the database
-      // fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+      // Persist the new user to disk
+      try {
+        fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+        console.log(`[google-auth] New user registered: ${newUser.email}`);
+      } catch (writeErr) {
+        console.error('[google-auth] Failed to persist new user:', writeErr.message);
+      }
       user = newUser;
     }
 
@@ -353,20 +350,12 @@ app.post('/api/auth/google', async (req, res) => {
     res.json({ token: jwtToken, user: safeUser });
     
   } catch (err) {
-    console.error('Google auth error:', err);
-    res.status(500).json({ error: 'Google authentication failed' });
+    console.error('Google auth error:', err.message);
+    res.status(401).json({ error: 'Google authentication failed. Please try again.' });
   }
 });
 
-// Helper function to verify Google token (simplified for demo)
-async function verifyGoogleToken(token) {
-  return {
-    sub: 'google_' + Math.random().toString(36).substring(2, 15),
-    email: 'user@example.com',
-    name: 'Google User',
-    picture: 'https://example.com/profile.jpg'
-  };
-}
+
 
 // ─── Auth: Registration (Email-based) ────────────────────────
 app.post('/api/auth/register', (req, res) => {

@@ -12,8 +12,7 @@ let currentUser = null;
 document.getElementById('btnLogin').addEventListener('click', doLogin);
 document.getElementById('inPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
-// Initialize Google Sign-In
-// Initialize Google Sign-In
+// ─── Google Sign-In ───
 function handleGoogleCredentialResponse(response) {
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
@@ -128,18 +127,6 @@ async function doLogin() {
     errEl.textContent = 'Server unavailable. Please try again later.';
     errEl.classList.add('show');
   }
-}
-
-// Demo mode — bypass login for conference attendees
-function enterDemoMode() {
-  currentUser = { name: 'Demo User', role: 'researcher' };
-  document.getElementById('sbName').textContent = 'Demo User';
-  document.getElementById('sbRole').textContent = 'Demo Mode';
-  document.getElementById('sbAvatar').textContent = 'DM';
-  document.getElementById('loginScreen').classList.add('out');
-  setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-  loadDashboard();
-  initMapOnce();
 }
 
 function doLogout() {
