@@ -17,47 +17,32 @@ function handleGoogleCredentialResponse(response) {
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
   
-  // Send ID token to backend for verification (3s timeout for demo fallback)
-  const googleAbort = new AbortController();
-  setTimeout(() => googleAbort.abort(), 3000);
-  fetch(API + '/auth/google', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential: response.credential }),
-    signal: googleAbort.signal
-  })
-  .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
-  .then(({ status, ok, body }) => {
-    if (!ok) { 
-      errEl.textContent = body.error || 'Google sign-in failed. Please try again.';
-      errEl.classList.add('show'); 
-      return; 
-    }
+  try {
+    // Decode Google JWT payload locally for GitHub Pages
+    const base64Url = response.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    const payload = JSON.parse(jsonPayload);
     
-    authToken = body.token;
-    currentUser = body.user;
-    document.getElementById('sbName').textContent = body.user.name;
-    document.getElementById('sbRole').textContent = body.user.role.charAt(0).toUpperCase() + body.user.role.slice(1);
-    document.getElementById('sbAvatar').textContent = body.user.name.split(' ').map(n => n[0]).join('').substring(0, 2);
-    
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
-  })
-  .catch(err => {
-    console.warn('Backend unreachable. Falling back to Demo Mode for Google Sign-In.');
+    console.log('Logging in via Google Frontend Mode');
     authToken = 'demo-token';
-    currentUser = { name: 'Google User', role: 'admin' };
+    currentUser = { name: payload.name, email: payload.email, role: 'researcher', picture: payload.picture };
+    
     document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = 'Administrator (Demo)';
-    document.getElementById('sbAvatar').textContent = 'GU';
+    document.getElementById('sbRole').textContent = 'Researcher';
+    document.getElementById('sbAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     
     document.getElementById('loginScreen').classList.add('out');
     setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
     loadDashboard();
     initMapOnce();
-  });
+  } catch (err) {
+    console.error('Google Sign-In failed locally:', err);
+    errEl.textContent = 'Google sign-in failed. Please try again.';
+    errEl.classList.add('show');
+  }
 }
 
 function initGoogleSignIn() {
@@ -102,9 +87,9 @@ if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
 }
 
 async function doLogin() {
-
   const username = document.getElementById('inUser').value.trim();
   const password = document.getElementById('inPass').value;
+  const role = document.getElementById('inRole').value;
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
 
@@ -114,45 +99,27 @@ async function doLogin() {
     return;
   }
 
-  try {
-    const loginAbort = new AbortController();
-    setTimeout(() => loginAbort.abort(), 3000);
-    const res = await fetch(API + '/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-      signal: loginAbort.signal
-    });
-    const data = await res.json();
-    if (!res.ok) { errEl.textContent = data.error || 'Invalid credentials. Please try again.'; errEl.classList.add('show'); return; }
+  // Frontend-only authentication for GitHub Pages
+  console.log('Logging in via Frontend Mode');
+  authToken = 'demo-token';
+  currentUser = { name: username || 'Demo User', role: role || 'admin' };
+  document.getElementById('sbName').textContent = currentUser.name;
+  
+  let displayRole = 'Administrator';
+  if (role === 'farmer') displayRole = 'Farmer / Extension';
+  if (role === 'government') displayRole = 'Gov / Policy';
+  if (role === 'researcher') displayRole = 'Researcher';
+  
+  document.getElementById('sbRole').textContent = displayRole;
+  document.getElementById('sbAvatar').textContent = currentUser.name.substring(0, 2).toUpperCase();
 
-    authToken = data.token;
-    currentUser = data.user;
-    document.getElementById('sbName').textContent = data.user.name;
-    document.getElementById('sbRole').textContent = data.user.role.charAt(0).toUpperCase() + data.user.role.slice(1);
-    document.getElementById('sbAvatar').textContent = data.user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
-  } catch (err) {
-    console.warn('Backend unreachable. Falling back to Demo Mode.');
-    authToken = 'demo-token';
-    currentUser = { name: username || 'Demo User', role: 'admin' };
-    document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = 'Administrator (Demo)';
-    document.getElementById('sbAvatar').textContent = currentUser.name.substring(0, 2).toUpperCase();
-
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
-  }
+  document.getElementById('loginScreen').classList.add('out');
+  setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+  loadDashboard();
+  initMapOnce();
 }
 
 function doLogout() {
-  if (authToken) fetch(API + '/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + authToken } });
   authToken = null; currentUser = null;
   document.getElementById('appShell').classList.remove('on');
   setTimeout(() => { document.getElementById('loginScreen').classList.remove('out'); }, 400);
@@ -309,10 +276,51 @@ document.querySelectorAll('.tab-bar').forEach(bar => {
 // ─── FETCH HELPER ───
 async function apiFetch(path) {
   try {
-    const h = authToken ? { 'Authorization': 'Bearer ' + authToken } : {};
-    const res = await fetch(API + path, { headers: h });
+    const h = authToken && authToken !== 'demo-token' ? { 'Authorization': 'Bearer ' + authToken } : {};
+    const abort = new AbortController();
+    setTimeout(() => abort.abort(), 2500);
+    const res = await fetch(API + path, { headers: h, signal: abort.signal });
+    if (!res.ok) throw new Error('Backend non-200');
     return await res.json();
-  } catch { return null; }
+  } catch {
+    console.warn('Backend unreachable. Using static fallback data for:', path);
+    // Map paths to static JSON files
+    const map = {
+      '/dashboard/stats': 'data/stats.json',
+      '/alerts': 'data/alerts.json',
+      '/satellites': 'data/satellites.json',
+      '/analytics/ndvi-by-region': 'data/ndvi.json',
+      '/fields': 'data/fields.json',
+      '/water': 'data/water.json',
+      '/food-security': 'data/food-security.json'
+    };
+    
+    if (path === '/news') {
+      return {
+        articles: [
+          { title: 'Global Report on Food Crises 2025', url: '#', date: { created: new Date().toISOString() }, source: [{ name: 'FAO' }], country: [{ name: 'Global' }], tag: 'Food Security' },
+          { title: 'UN World Water Development Report 2025', url: '#', date: { created: new Date().toISOString() }, source: [{ name: 'UN Water' }], country: [{ name: 'Global' }], tag: 'Water' },
+          { title: 'NASA GRACE-FO: Groundwater depletion accelerating', url: '#', date: { created: new Date().toISOString() }, source: [{ name: 'NASA' }], country: [{ name: 'North Africa' }], tag: 'Water' }
+        ]
+      };
+    }
+    
+    if (map[path]) {
+      try {
+        const localRes = await fetch(map[path]);
+        const data = await localRes.json();
+        // Wrap data as expected by the frontend
+        if (path === '/alerts') return { alerts: data, total: data.length };
+        if (path === '/satellites') return { satellites: data, count: data.length };
+        if (path === '/analytics/ndvi-by-region') return { data: data, source: 'Sentinel-2' };
+        if (path === '/fields') return { fields: data, total: data.length };
+        return data; // stats, water, food-security are direct
+      } catch (e) {
+        return null;
+      }
+    }
+    return null; 
+  }
 }
 
 // ─── DASHBOARD ───
