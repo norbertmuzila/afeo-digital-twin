@@ -17,11 +17,14 @@ function handleGoogleCredentialResponse(response) {
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
   
-  // Send ID token to backend for verification
+  // Send ID token to backend for verification (3s timeout for demo fallback)
+  const googleAbort = new AbortController();
+  setTimeout(() => googleAbort.abort(), 3000);
   fetch(API + '/auth/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ credential: response.credential })
+    body: JSON.stringify({ credential: response.credential }),
+    signal: googleAbort.signal
   })
   .then(res => res.json().then(data => ({ status: res.status, ok: res.ok, body: data })))
   .then(({ status, ok, body }) => {
@@ -112,10 +115,13 @@ async function doLogin() {
   }
 
   try {
+    const loginAbort = new AbortController();
+    setTimeout(() => loginAbort.abort(), 3000);
     const res = await fetch(API + '/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password }),
+      signal: loginAbort.signal
     });
     const data = await res.json();
     if (!res.ok) { errEl.textContent = data.error || 'Invalid credentials. Please try again.'; errEl.classList.add('show'); return; }
@@ -179,10 +185,13 @@ async function doRegister() {
   }
 
   try {
+    const regAbort = new AbortController();
+    setTimeout(() => regAbort.abort(), 3000);
     const res = await fetch(API + '/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, username, password, region })
+      body: JSON.stringify({ name, email, username, password, region }),
+      signal: regAbort.signal
     });
     const data = await res.json();
     if (!res.ok) {
