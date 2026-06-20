@@ -398,7 +398,7 @@ app.post('/api/auth/google', async (req, res) => {
 
 
 // ─── Auth: Registration (Email-based) ────────────────────────
-app.post('/api/auth/register', (req, res) => {
+app.post('/api/auth/register', async (req, res) => {
   const { name, email, username, password, region } = req.body || {};
   if (!name || !email || !username || !password) {
     return res.status(400).json({ error: 'All fields are required (name, email, username, password)' });
@@ -452,7 +452,7 @@ app.post('/api/auth/register', (req, res) => {
 });
 
 // ─── Admin: List All Users ───────────────────────────────────
-app.get('/api/admin/users', auth, (req, res) => {
+app.get('/api/admin/users', auth, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
   }
