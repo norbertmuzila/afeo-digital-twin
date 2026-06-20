@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════
-//  WAFEO Digital Twin — Full Backend Server
+//  WAFEO Digital Twin  EFull Backend Server
 //  Node.js / Express  |  All API endpoints + JWT auth
 // ════════════════════════════════════════════════════════════
 
@@ -23,7 +23,7 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// ─── CORS — allow GitHub Pages frontend ─────────────────────
+// ─── CORS  Eallow GitHub Pages frontend ─────────────────────
 app.use(cors({
   origin: [
     'https://norbertmuzila.github.io',
@@ -132,7 +132,7 @@ function parseRSS(xml, sourceName, tag) {
   return items;
 }
 
-// ─── NEWS CACHE (15-min TTL — refreshes daily content) ─────────
+// ─── NEWS CACHE (15-min TTL  Erefreshes daily content) ─────────
 const newsCache = { data: null, fetchedAt: 0, ttl: 15 * 60 * 1000 };
 const HDR = { 'User-Agent': 'WAFEO-Digital-Twin/2.0 (norbertmuzila.github.io/wafeo)', 'Accept': 'application/json, text/xml, */*' };
 
@@ -163,10 +163,10 @@ async function fetchLiveNews() {
 
   const all = [];
 
-  // Run ALL sources in parallel — each is fully independent, failures silently skipped
+  // Run ALL sources in parallel  Eeach is fully independent, failures silently skipped
   await Promise.allSettled([
 
-    // ══ RELIEFWEB POST API (UN OCHA) — 8 themes ════════════════
+    // ══ RELIEFWEB POST API (UN OCHA)  E8 themes ════════════════
     rwFetch('Food and Nutrition',           'Food Security', 15).then(r => all.push(...r)).catch(e => console.warn('[rw] food:', e.message)),
     rwFetch('Agriculture',                  'Agriculture',   15).then(r => all.push(...r)).catch(e => console.warn('[rw] agri:', e.message)),
     rwFetch('Water Sanitation Hygiene',     'Water',         15).then(r => all.push(...r)).catch(e => console.warn('[rw] water:', e.message)),
@@ -189,7 +189,7 @@ async function fetchLiveNews() {
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Devex', 'Development')))
       .catch(e => console.warn('[rss] devex:', e.message)),
 
-    // ══ CIRCLE OF BLUE & SCIENCEDAILY ═══════════════════════════
+    // ══ CIRCLE OF BLUE & SCIENCEDAILY ══════════════════════════╁E
     fetch('https://www.circleofblue.org/feed/', { headers: HDR, signal: AbortSignal.timeout(10000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'Circle of Blue', 'Water')))
       .catch(e => console.warn('[rss] circleofblue:', e.message)),
@@ -211,7 +211,7 @@ async function fetchLiveNews() {
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'UN News', 'Food Security')))
       .catch(e => console.warn('[rss] un-news:', e.message)),
 
-    // ══ NASA & GDACS ═══════════════════════════════════════════
+    // ══ NASA & GDACS ══════════════════════════════════════════╁E
     fetch('https://earthobservatory.nasa.gov/feeds/earth-observatory.rss', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'NASA Earth Observatory', 'Water')))
       .catch(e => console.warn('[rss] nasa-eo:', e.message)),
@@ -219,7 +219,7 @@ async function fetchLiveNews() {
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'GDACS', 'Disaster')))
       .catch(e => console.warn('[rss] gdacs:', e.message)),
 
-    // ══ ADDITIONAL: AgFunderNews & The Guardian ═══════════════
+    // ══ ADDITIONAL: AgFunderNews & The Guardian ══════════════╁E
     fetch('https://agfundernews.com/feed', { headers: HDR, signal: AbortSignal.timeout(9000) })
       .then(r => r.text()).then(xml => all.push(...parseRSS(xml, 'AgFunder', 'Ag-Tech')))
       .catch(e => console.warn('[rss] agfunder:', e.message)),
@@ -253,23 +253,23 @@ async function fetchLiveNews() {
     return unique;
   }
 
-  // ── Guaranteed curated fallback — real articles, news panel never empty ──
-  console.warn('[news] All live sources failed — serving curated fallback');
+  // ── Guaranteed curated fallback  Ereal articles, news panel never empty ──
+  console.warn('[news] All live sources failed  Eserving curated fallback');
   return [
     { title: 'Global Report on Food Crises 2025: 295 Million People in Acute Food Insecurity', url: 'https://www.fao.org/newsroom/detail/global-report-on-food-crises-grfc-2025/en', date: { created: '2025-04-01T00:00:00Z' }, source: [{ name: 'FAO / WFP / FEWS NET' }], country: [{ name: 'Global' }], tag: 'Food Security' },
-    { title: 'WFP: Sudan hunger emergency deepens — 24.6 million face acute food insecurity', url: 'https://www.wfp.org/countries/sudan', date: { created: '2025-03-15T00:00:00Z' }, source: [{ name: 'WFP' }], country: [{ name: 'Sudan' }], tag: 'Food Security' },
+    { title: 'WFP: Sudan hunger emergency deepens  E24.6 million face acute food insecurity', url: 'https://www.wfp.org/countries/sudan', date: { created: '2025-03-15T00:00:00Z' }, source: [{ name: 'WFP' }], country: [{ name: 'Sudan' }], tag: 'Food Security' },
     { title: 'UN World Water Development Report 2025: Glacier and Groundwater Crisis', url: 'https://www.unwater.org/publications/un-world-water-development-report-2025', date: { created: '2025-03-22T00:00:00Z' }, source: [{ name: 'UN Water / UNESCO' }], country: [{ name: 'Global' }], tag: 'Water' },
     { title: 'East Africa drought: 28 million at risk as La Niña extends dry season into 2025', url: 'https://reliefweb.int/report/kenya/east-africa-drought-2025', date: { created: '2025-02-20T00:00:00Z' }, source: [{ name: 'OCHA' }], country: [{ name: 'Kenya' }, { name: 'Ethiopia' }, { name: 'Somalia' }], tag: 'Water' },
-    { title: 'Gaza: 2.1 million face catastrophic food insecurity — IPC classification', url: 'https://www.ipcinfo.org/ipc-country-analysis/details-map/en/c/1157770/', date: { created: '2025-03-10T00:00:00Z' }, source: [{ name: 'IPC / FAO / WFP' }], country: [{ name: 'Palestine' }], tag: 'Food Security' },
+    { title: 'Gaza: 2.1 million face catastrophic food insecurity  EIPC classification', url: 'https://www.ipcinfo.org/ipc-country-analysis/details-map/en/c/1157770/', date: { created: '2025-03-10T00:00:00Z' }, source: [{ name: 'IPC / FAO / WFP' }], country: [{ name: 'Palestine' }], tag: 'Food Security' },
     { title: 'FAO: Global cereal production forecast cut by 1.3% amid climate disruptions', url: 'https://www.fao.org/worldfoodsituation/csdb/en/', date: { created: '2025-03-07T00:00:00Z' }, source: [{ name: 'FAO' }], country: [{ name: 'Global' }], tag: 'Agriculture' },
     { title: 'Copernicus: Record vegetation stress index across Mediterranean croplands in 2025', url: 'https://www.copernicus.eu/en/media/image-day-gallery', date: { created: '2025-02-15T00:00:00Z' }, source: [{ name: 'Copernicus / ESA' }], country: [{ name: 'Mediterranean' }], tag: 'Agriculture' },
-    { title: 'Nile Basin water levels at 40-year low — Egypt and Ethiopia in water dispute', url: 'https://reliefweb.int/report/egypt/nile-basin-water-crisis-2025', date: { created: '2025-01-28T00:00:00Z' }, source: [{ name: 'ReliefWeb / OCHA' }], country: [{ name: 'Egypt' }, { name: 'Ethiopia' }, { name: 'Sudan' }], tag: 'Water' },
+    { title: 'Nile Basin water levels at 40-year low  EEgypt and Ethiopia in water dispute', url: 'https://reliefweb.int/report/egypt/nile-basin-water-crisis-2025', date: { created: '2025-01-28T00:00:00Z' }, source: [{ name: 'ReliefWeb / OCHA' }], country: [{ name: 'Egypt' }, { name: 'Ethiopia' }, { name: 'Sudan' }], tag: 'Water' },
     { title: 'NASA GRACE-FO: Groundwater depletion accelerating in North Africa and Arabian Peninsula', url: 'https://earthobservatory.nasa.gov/images/152876/groundwater-decline-north-africa', date: { created: '2025-02-10T00:00:00Z' }, source: [{ name: 'NASA / GRACE-FO' }], country: [{ name: 'North Africa' }, { name: 'Saudi Arabia' }], tag: 'Water' },
     { title: 'CGIAR: Climate-smart rice varieties boost yields by 30% in flood-prone Bangladesh', url: 'https://www.cgiar.org/news-events/news/climate-smart-rice-bangladesh/', date: { created: '2025-02-05T00:00:00Z' }, source: [{ name: 'CGIAR' }], country: [{ name: 'Bangladesh' }], tag: 'Agriculture' },
     { title: 'Myanmar: 13 million face food insecurity as conflict disrupts agriculture', url: 'https://www.wfp.org/countries/myanmar', date: { created: '2025-03-01T00:00:00Z' }, source: [{ name: 'WFP' }], country: [{ name: 'Myanmar' }], tag: 'Food Security' },
     { title: 'World Bank: $2.5 billion fund to support climate-resilient agriculture in Africa', url: 'https://blogs.worldbank.org/en/category/agriculture-and-food', date: { created: '2025-01-20T00:00:00Z' }, source: [{ name: 'World Bank' }], country: [{ name: 'Africa' }], tag: 'Agriculture' },
     { title: 'FAO Desert Locust alert: New breeding grounds detected in East Africa March 2025', url: 'https://www.fao.org/ag/locusts/en/info/info/index.html', date: { created: '2025-03-05T00:00:00Z' }, source: [{ name: 'FAO DLIS' }], country: [{ name: 'Somalia' }, { name: 'Kenya' }, { name: 'Ethiopia' }], tag: 'Agriculture' },
-    { title: 'South Sudan: IPC Phase 5 Catastrophe — 74,000 face famine conditions', url: 'https://www.ipcinfo.org/ipc-country-analysis/details-map/en/c/1157066/', date: { created: '2025-02-28T00:00:00Z' }, source: [{ name: 'IPC / FAO' }], country: [{ name: 'South Sudan' }], tag: 'Food Security' },
+    { title: 'South Sudan: IPC Phase 5 Catastrophe  E74,000 face famine conditions', url: 'https://www.ipcinfo.org/ipc-country-analysis/details-map/en/c/1157066/', date: { created: '2025-02-28T00:00:00Z' }, source: [{ name: 'IPC / FAO' }], country: [{ name: 'South Sudan' }], tag: 'Food Security' },
     { title: 'El Niño to La Niña transition reshapes 2025 rainfall patterns across WAFEO regions', url: 'https://reliefweb.int/report/world/el-nino-la-nina-transition-2025', date: { created: '2025-01-15T00:00:00Z' }, source: [{ name: 'NOAA / WMO' }], country: [{ name: 'Global' }], tag: 'Water' },
     { title: 'IFAD: Smallholder farmers in Sub-Saharan Africa lose $5B annually to soil degradation', url: 'https://www.ifad.org/en/web/latest/news-detail/asset/43030019', date: { created: '2025-02-18T00:00:00Z' }, source: [{ name: 'IFAD' }], country: [{ name: 'Sub-Saharan Africa' }], tag: 'Agriculture' },
   ];
@@ -320,7 +320,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // ─── Auth: Logout ────────────────────────────────────────────
 app.post('/api/auth/logout', auth, (req, res) => {
-  // Stateless JWT — client discards the token
+  // Stateless JWT  Eclient discards the token
   res.json({ message: 'Logged out successfully' });
 });
 
@@ -332,7 +332,7 @@ app.post('/api/auth/google', async (req, res) => {
   }
 
   try {
-    // Verify the Google ID token cryptographically — no mock fallback
+    // Verify the Google ID token cryptographically  Eno mock fallback
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: GOOGLE_CLIENT_ID, 
@@ -543,7 +543,7 @@ app.get('/api/satellite/external/:provider', auth, (req, res) => {
   });
 });
 
-// ─── Catch-all → SPA ─────────────────────────────────────────
+// ─── Catch-all ↁESPA ─────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -551,7 +551,7 @@ app.get('*', (req, res) => {
 // ─── Start ───────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`\n  ╔══════════════════════════════════════════╗`);
-  console.log(`  ║  WAFEO Digital Twin API — v2.0.0        ║`);
-  console.log(`  ║  Running on http://localhost:${PORT}         ║`);
+  console.log(`  ╁E WAFEO Digital Twin API  Ev2.0.0        ║`);
+  console.log(`  ╁E Running on http://localhost:${PORT}         ║`);
   console.log(`  ╚══════════════════════════════════════════╝\n`);
 });
