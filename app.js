@@ -1,8 +1,11 @@
 // ════════════════════════════════════════
-//  WAFEO Platform — Frontend Application
+//  WAFEO Platform  EFrontend Application
 // ════════════════════════════════════════
 
-const API = 'https://wafeo.up.railway.app/api';
+// Dynamic API URL: relative on Vercel, full URL on GitHub Pages
+const API = window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost'
+  ? '/api'
+  : 'https://wafeo.vercel.app/api';
 let authToken = null;
 let currentUser = null;
 
@@ -166,9 +169,9 @@ async function doRegister() {
       errEl.classList.add('show');
       return;
     }
-    // Success — show success message and close modal
+    // Success  Eshow success message and close modal
     errEl.className = 'register-success';
-    errEl.textContent = '✅ Account created! You can now log in with your credentials.';
+    errEl.textContent = '✁EAccount created! You can now log in with your credentials.';
     errEl.style.display = 'block';
     setTimeout(() => {
       document.getElementById('registerModal').classList.remove('show');
@@ -182,7 +185,7 @@ async function doRegister() {
   } catch (err) {
     console.warn('Backend unreachable. Simulating successful registration.');
     errEl.className = 'register-success';
-    errEl.textContent = '✅ Demo Account created! You can now log in.';
+    errEl.textContent = '✁EDemo Account created! You can now log in.';
     errEl.style.display = 'block';
     setTimeout(() => {
       document.getElementById('registerModal').classList.remove('show');
@@ -204,7 +207,7 @@ if(themeToggleBtn) {
   const initialTheme = document.documentElement.getAttribute('data-theme');
   if (initialTheme === 'light') {
     isDarkMode = false;
-    themeToggleBtn.textContent = '☀️';
+    themeToggleBtn.textContent = '☀�E�E;
   } else {
     isDarkMode = true;
     themeToggleBtn.textContent = '🌙';
@@ -213,7 +216,7 @@ if(themeToggleBtn) {
     if (isDarkMode) {
       // Switch to LIGHT mode
       document.documentElement.setAttribute('data-theme', 'light');
-      themeToggleBtn.textContent = '☀️';
+      themeToggleBtn.textContent = '☀�E�E;
       isDarkMode = false;
     } else {
       // Switch to DARK mode
@@ -225,7 +228,7 @@ if(themeToggleBtn) {
 }
 
 const titleMap = {
-  'dashboard':'Dashboard', 'world-map':'World Map — Digital Twin', 'precision-farming':'Precision Farming',
+  'dashboard':'Dashboard', 'world-map':'World Map  EDigital Twin', 'precision-farming':'Precision Farming',
   'crop-monitoring':'Crop Monitoring', 'soil-analysis':'Soil Analysis', 'water-resources':'Water Resources',
   'drought-monitor':'Drought Monitor', 'food-security':'Food Security Index', 'early-warning':'Early Warning',
   'reports':'Reports & Analytics', 'settings':'Settings'
@@ -392,7 +395,7 @@ function renderNewsPanel(articles) {
 
   panel.innerHTML = `
     <div class="panel-hdr" style="flex-wrap: wrap; gap: 10px;">
-      <h3 style="flex-shrink: 0;">📰 Live News — Water, Agriculture &amp; Food Systems</h3>
+      <h3 style="flex-shrink: 0;">📰 Live News  EWater, Agriculture &amp; Food Systems</h3>
       <div class="news-search-box">
         <input type="text" id="newsQuery" placeholder="Search keywords..." oninput="handleNewsSearch(event)">
       </div>
@@ -453,8 +456,8 @@ function renderStats(s) {
   document.getElementById('statsGrid').innerHTML = `
     <div class="stat-card"><div class="sc-icon g">🌾</div><div class="sc-label">Global Crop Health (NDVI)</div><div class="sc-value" style="color:var(--accent-green)">${s.cropHealth.value}</div><div class="sc-change up">${s.cropHealth.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">Sentinel-2 / MODIS · ${_ts()}</div></div>
     <div class="stat-card"><div class="sc-icon b">💧</div><div class="sc-label">Water Availability</div><div class="sc-value" style="color:var(--accent-blue)">${s.waterScore.value}</div><div class="sc-change dn">${s.waterScore.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">GRACE-FO / NISAR · ${_ts()}</div></div>
-    <div class="stat-card"><div class="sc-icon a">🛡️</div><div class="sc-label">Food Security Alerts</div><div class="sc-value" style="color:var(--accent-amber)">${s.foodAlerts.value}</div><div class="sc-change neut">${s.foodAlerts.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">IPC / FEWS NET · ${_ts()}</div></div>
-    <div class="stat-card"><div class="sc-icon c">🛰️</div><div class="sc-label">Active Satellites</div><div class="sc-value" style="color:var(--accent-cyan)">${s.satellites.value}</div><div class="sc-change neut">${s.satellites.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">incl. NISAR · ${_ts()}</div></div>
+    <div class="stat-card"><div class="sc-icon a">🛡�E�E/div><div class="sc-label">Food Security Alerts</div><div class="sc-value" style="color:var(--accent-amber)">${s.foodAlerts.value}</div><div class="sc-change neut">${s.foodAlerts.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">IPC / FEWS NET · ${_ts()}</div></div>
+    <div class="stat-card"><div class="sc-icon c">🛰�E�E/div><div class="sc-label">Active Satellites</div><div class="sc-value" style="color:var(--accent-cyan)">${s.satellites.value}</div><div class="sc-change neut">${s.satellites.change}</div><div style="font-size:9px;color:var(--text-muted);margin-top:4px">incl. NISAR · ${_ts()}</div></div>
   `;
 }
 
@@ -470,7 +473,7 @@ function renderAlerts(alerts) {
       </div>
     </div>
   `).join('');
-  document.getElementById('alertsPanel').innerHTML = `<div class="panel-hdr"><h3>⚠️ Active Alerts</h3><span class="panel-badge">${alerts.length} Active</span></div>${html}`;
+  document.getElementById('alertsPanel').innerHTML = `<div class="panel-hdr"><h3>⚠�E�EActive Alerts</h3><span class="panel-badge">${alerts.length} Active</span></div>${html}`;
 }
 
 function renderNDVIChart(data) {
@@ -485,28 +488,28 @@ function renderWaterGauges() {
     <div class="gauge-row">
       <div class="gauge-item"><label><span>Global Reservoir Levels</span><span>67%</span></label><div class="gauge-track"><div class="gauge-fill water" style="width:67%"></div></div></div>
       <div class="gauge-item"><label><span>Groundwater Index</span><span>54%</span></label><div class="gauge-track"><div class="gauge-fill mixed" style="width:54%"></div></div></div>
-      <div class="gauge-item"><label><span>Rainfall Anomaly (30d)</span><span style="color:var(--accent-red)">−18%</span></label><div class="gauge-track"><div class="gauge-fill low" style="width:38%"></div></div></div>
+      <div class="gauge-item"><label><span>Rainfall Anomaly (30d)</span><span style="color:var(--accent-red)">∁E8%</span></label><div class="gauge-track"><div class="gauge-fill low" style="width:38%"></div></div></div>
       <div class="gauge-item"><label><span>Snow Water Equivalent</span><span>81%</span></label><div class="gauge-track"><div class="gauge-fill high" style="width:81%"></div></div></div>
     </div>
-    <div style="font-size:9px;color:var(--text-muted);padding:8px 16px 4px">Source: NASA GRACE-FO, NISAR, CHIRPS, ERA5 · Updated: ${_ts()} · <em>[Illustrative values — connect live API]</em></div>`;
+    <div style="font-size:9px;color:var(--text-muted);padding:8px 16px 4px">Source: NASA GRACE-FO, NISAR, CHIRPS, ERA5 · Updated: ${_ts()} · <em>[Illustrative values  Econnect live API]</em></div>`;
 }
 
 function renderFoodQuick() {
   const rows = [
-    ['🇸🇴 Somalia','Phase 4–5','6.5M','▲ Worsening','crit','var(--accent-red)'],
-    ['🇸🇩 Sudan','Phase 4','8.7M','▲ Worsening','crit','var(--accent-red)'],
-    ['🇪🇹 Ethiopia','Phase 3–4','12.8M','▲ Worsening','crit','var(--accent-red)'],
-    ['🇦🇫 Afghanistan','Phase 3','15.3M','→ Stable','warn','var(--accent-amber)'],
-    ['🇭🇹 Haiti','Phase 3','4.9M','→ Stable','warn','var(--accent-amber)'],
-    ['🇲🇬 Madagascar','Phase 3','2.2M','▼ Improving','info','var(--accent-green)'],
+    ['�E�E Somalia','Phase 4 E','6.5M','▲ Worsening','crit','var(--accent-red)'],
+    ['�E�E Sudan','Phase 4','8.7M','▲ Worsening','crit','var(--accent-red)'],
+    ['�E�E Ethiopia','Phase 3 E','12.8M','▲ Worsening','crit','var(--accent-red)'],
+    ['�E�E Afghanistan','Phase 3','15.3M','ↁEStable','warn','var(--accent-amber)'],
+    ['�E�E Haiti','Phase 3','4.9M','ↁEStable','warn','var(--accent-amber)'],
+    ['�E�E Madagascar','Phase 3','2.2M','▼ Improving','info','var(--accent-green)'],
   ];
   const tbody = rows.map(r => `<tr><td>${r[0]}</td><td><span class="pill ${r[4]}">${r[1]}</span></td><td class="mono">${r[2]}</td><td style="color:${r[5]}">${r[3]}</td></tr>`).join('');
-  document.getElementById('foodPanel').innerHTML = `<div class="panel-hdr"><h3>🛡️ Food Security Watch</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Region</th><th>Phase</th><th>Pop.</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">Source: IPC, FEWS NET, WFP · Updated: ${_ts()}</div>`;
+  document.getElementById('foodPanel').innerHTML = `<div class="panel-hdr"><h3>🛡�E�EFood Security Watch</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Region</th><th>Phase</th><th>Pop.</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">Source: IPC, FEWS NET, WFP · Updated: ${_ts()}</div>`;
 }
 
 function renderSatellites(sats) {
-  const tbody = sats.map(s => `<tr><td>${s.name}</td><td>${s.agency}</td><td class="mono">${s.passTime}</td><td>${s.coverage}</td><td>${s.resolution}</td><td>${s.dataType}</td><td><span class="pill ${s.status==='active'?'ok':'info'}">● ${s.status.charAt(0).toUpperCase()+s.status.slice(1)}</span></td></tr>`).join('');
-  document.getElementById('satPanel').innerHTML = `<div class="panel-hdr"><h3>🛰️ Active Satellite Data Sources</h3><span class="panel-badge">${sats.length} Sources</span></div><table class="dtable"><thead><tr><th>Satellite / Source</th><th>Agency</th><th>Frequency</th><th>Coverage</th><th>Res.</th><th>Data</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">All sources free or open-access · Updated: ${_ts()}</div>`;
+  const tbody = sats.map(s => `<tr><td>${s.name}</td><td>${s.agency}</td><td class="mono">${s.passTime}</td><td>${s.coverage}</td><td>${s.resolution}</td><td>${s.dataType}</td><td><span class="pill ${s.status==='active'?'ok':'info'}">◁E${s.status.charAt(0).toUpperCase()+s.status.slice(1)}</span></td></tr>`).join('');
+  document.getElementById('satPanel').innerHTML = `<div class="panel-hdr"><h3>🛰�E�EActive Satellite Data Sources</h3><span class="panel-badge">${sats.length} Sources</span></div><table class="dtable"><thead><tr><th>Satellite / Source</th><th>Agency</th><th>Frequency</th><th>Coverage</th><th>Res.</th><th>Data</th><th>Status</th></tr></thead><tbody>${tbody}</tbody></table><div style="font-size:9px;color:var(--text-muted);padding:6px 16px">All sources free or open-access · Updated: ${_ts()}</div>`;
 }
 
 function timeAgo(ts) {
@@ -532,7 +535,7 @@ function loadFieldsDemo() {
     {name:'Field Zeta',crop:'Groundnut',ndvi:0.46,soilMoisture:22,yieldEst:1.4,area:55,status:'stressed'},
   ]);
 }
-const cropEmoji = { Wheat:'🌾', Maize:'🌽', Rice:'🍚', Soybean:'🫘', Coffee:'☕', Groundnut:'🥜', Tobacco:'🍂', Sorghum:'🌿' };
+const cropEmoji = { Wheat:'🌾', Maize:'🌽', Rice:'🍚', Soybean:'🫁E, Coffee:'☁E, Groundnut:'🥁E, Tobacco:'🍂', Sorghum:'🌿' };
 function ndviColor(v) { return v>=0.7?'#1a9850':v>=0.55?'#91cf60':v>=0.4?'#d9ef8b':v>=0.3?'#fee08b':v>=0.2?'#fc8d59':'#d73027'; }
 function ndviGrad(v) { return v>=0.7?'linear-gradient(90deg,#91cf60,#1a9850)':v>=0.5?'linear-gradient(90deg,#d9ef8b,#91cf60)':v>=0.3?'linear-gradient(90deg,#fee08b,#fc8d59)':'linear-gradient(90deg,#d73027,#fc8d59)'; }
 function smColor(v) { return v>=50?'var(--accent-blue)':v>=25?'var(--accent-amber)':'var(--accent-red)'; }
@@ -541,7 +544,7 @@ function ylColor(v) { return v>=3?'var(--accent-green)':v>=1.5?'var(--accent-amb
 function renderFields(fields) {
   document.getElementById('farmGrid').innerHTML = fields.map(f => `
     <div class="farm-card">
-      <div class="fc-hdr"><h4>${cropEmoji[f.crop]||'🌱'} ${f.name} — ${f.crop}</h4><div class="fc-status ${f.status}">● ${f.status.charAt(0).toUpperCase()+f.status.slice(1)}</div></div>
+      <div class="fc-hdr"><h4>${cropEmoji[f.crop]||'🌱'} ${f.name}  E${f.crop}</h4><div class="fc-status ${f.status}">◁E${f.status.charAt(0).toUpperCase()+f.status.slice(1)}</div></div>
       <div class="ndvi-bar-wrap">
         <div class="ndvi-lbl">NDVI Index</div>
         <div class="ndvi-prog">
@@ -574,9 +577,9 @@ async function loadWater() {
   }
   document.getElementById('waterStats').innerHTML = `
     <div class="stat-card"><div class="sc-icon b">🌊</div><div class="sc-label">Global Reservoir Volume</div><div class="sc-value" style="color:var(--accent-blue)">6,840 km³</div><div class="sc-change dn">▼ 3.2% YoY</div></div>
-    <div class="stat-card"><div class="sc-icon c">🏔️</div><div class="sc-label">Snow Water Equivalent</div><div class="sc-value" style="color:var(--accent-cyan)">2,120 km³</div><div class="sc-change up">▲ 8.1%</div></div>
-    <div class="stat-card"><div class="sc-icon a">🌧️</div><div class="sc-label">30-Day Precip Anomaly</div><div class="sc-value" style="color:var(--accent-amber)">−18%</div><div class="sc-change dn">Below normal</div></div>
-    <div class="stat-card"><div class="sc-icon r">⬇️</div><div class="sc-label">Groundwater Trend</div><div class="sc-value" style="color:var(--accent-red)">−2.4 cm/yr</div><div class="sc-change dn">Declining</div></div>
+    <div class="stat-card"><div class="sc-icon c">🏔�E�E/div><div class="sc-label">Snow Water Equivalent</div><div class="sc-value" style="color:var(--accent-cyan)">2,120 km³</div><div class="sc-change up">▲ 8.1%</div></div>
+    <div class="stat-card"><div class="sc-icon a">🌧�E�E/div><div class="sc-label">30-Day Precip Anomaly</div><div class="sc-value" style="color:var(--accent-amber)">∁E8%</div><div class="sc-change dn">Below normal</div></div>
+    <div class="stat-card"><div class="sc-icon r">⬁E��E/div><div class="sc-label">Groundwater Trend</div><div class="sc-value" style="color:var(--accent-red)">∁E.4 cm/yr</div><div class="sc-change dn">Declining</div></div>
   `;
   const pillStatus = { normal:'ok', critical:'crit', watch:'warn', recovering:'warn', low:'crit' };
   const trendColor = t => t.includes('+') || t.includes('Stable') ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -589,15 +592,15 @@ async function loadFood() {
   const data = await apiFetch('/food-security');
   if (!data) return;
   document.getElementById('foodStats').innerHTML = `
-    <div class="stat-card"><div class="sc-icon a">🛡️</div><div class="sc-label">IPC Phase 3+ Pop.</div><div class="sc-value" style="color:var(--accent-red)">258M</div><div class="sc-change dn">▲ 12M Q1</div></div>
+    <div class="stat-card"><div class="sc-icon a">🛡�E�E/div><div class="sc-label">IPC Phase 3+ Pop.</div><div class="sc-value" style="color:var(--accent-red)">258M</div><div class="sc-change dn">▲ 12M Q1</div></div>
     <div class="stat-card"><div class="sc-icon r">🚨</div><div class="sc-label">Famine Risk Zones</div><div class="sc-value" style="color:var(--accent-red)">5</div><div class="sc-change dn">+1 new</div></div>
     <div class="stat-card"><div class="sc-icon g">📈</div><div class="sc-label">Cereal Production</div><div class="sc-value" style="color:var(--accent-green)">2.82B t</div><div class="sc-change up">▲ 1.8%</div></div>
     <div class="stat-card"><div class="sc-icon b">🌐</div><div class="sc-label">Countries Monitored</div><div class="sc-value" style="color:var(--accent-cyan)">78</div><div class="sc-change neut">Full</div></div>
   `;
   const phaseClass = p => p.includes('4')?'crit':p.includes('3')?'warn':'info';
   const trendColor = t => t==='Worsening'?'var(--accent-red)':t==='Improving'?'var(--accent-green)':'var(--accent-amber)';
-  const tbody = data.data.map(f => `<tr><td>${f.flag} ${f.country}</td><td><span class="pill ${phaseClass(f.phase)}">${f.phase} — ${f.label}</span></td><td class="mono">${f.popAffected}</td><td>${f.driver}</td><td>${f.harvest}</td><td style="color:${trendColor(f.trend)}">${f.trend}</td></tr>`).join('');
-  document.getElementById('foodTable').innerHTML = `<div class="panel-hdr"><h3>🛡️ Food Security Classification</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Country</th><th>Phase</th><th>Pop.</th><th>Driver</th><th>Harvest</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table>`;
+  const tbody = data.data.map(f => `<tr><td>${f.flag} ${f.country}</td><td><span class="pill ${phaseClass(f.phase)}">${f.phase}  E${f.label}</span></td><td class="mono">${f.popAffected}</td><td>${f.driver}</td><td>${f.harvest}</td><td style="color:${trendColor(f.trend)}">${f.trend}</td></tr>`).join('');
+  document.getElementById('foodTable').innerHTML = `<div class="panel-hdr"><h3>🛡�E�EFood Security Classification</h3><span class="panel-badge">IPC / FEWS NET</span></div><table class="dtable"><thead><tr><th>Country</th><th>Phase</th><th>Pop.</th><th>Driver</th><th>Harvest</th><th>Trend</th></tr></thead><tbody>${tbody}</tbody></table>`;
 }
 
 // ─── MAP (LEAFLET LAYER) ───
@@ -687,7 +690,7 @@ function initMapOnce() {
   let currentBase = gmapStreets;
   let currentLabels = gmapLabelsOverlay;
   currentBase.addTo(map);
-  // Do NOT add labels overlay in initial Map/Streets mode — labels are already baked into the base tile
+  // Do NOT add labels overlay in initial Map/Streets mode  Elabels are already baked into the base tile
   // Only add labels overlay in Satellite mode (handled by updateGoogleLayer)
 
   function updateGoogleLayer() {
@@ -805,7 +808,7 @@ function showCountryDetail(co) {
   const fc = {'Phase 1':'var(--accent-green)','Phase 2':'var(--accent-amber)','Phase 3':'var(--accent-red)','Phase 4':'#d73027'};
   const ndviCol = co.ndvi>=0.6?'var(--accent-green)':co.ndvi>=0.4?'var(--accent-amber)':'var(--accent-red)';
   document.getElementById('mapDetail').innerHTML = `
-    <h3 style="cursor:pointer" onclick="showMapOverview()">← ${co.name}</h3>
+    <h3 style="cursor:pointer" onclick="showMapOverview()">ↁE${co.name}</h3>
     <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px">Population: ${co.pop}</div>
     <div class="md-row"><span class="md-l">NDVI Index</span><span class="md-v" style="color:${ndviCol}">${co.ndvi}</span></div>
     <div class="md-row"><span class="md-l">Water Score</span><span class="md-v" style="color:${co.water>=60?'var(--accent-blue)':co.water>=35?'var(--accent-amber)':'var(--accent-red)'}">${co.water}%</span></div>
@@ -828,7 +831,7 @@ function hideTip() { document.getElementById('ttp').classList.remove('on'); }
 
 // ─── GLOBAL SEARCH ───
 document.getElementById('globalSearch').addEventListener('input', async function() {
-  // Could wire to /api/search — for now just visual feedback
+  // Could wire to /api/search  Efor now just visual feedback
 });
 
 // ─── AI ASSISTANT LOGIC ───
@@ -1024,7 +1027,7 @@ async function handleUserMsg() {
   chatHistory.push({ role: "user", content: text });
   
   const typingId = 'typing-' + Date.now();
-  appendChatMsg('bot', '🤖', 'Thinking...', typingId);
+  appendChatMsg('bot', '🤁E, 'Thinking...', typingId);
   
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1050,12 +1053,12 @@ async function handleUserMsg() {
     
     // Parse basic markdown bolding & newlines
     let htmlResponse = botResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-    appendChatMsg('bot', '🤖', htmlResponse, null, true);
+    appendChatMsg('bot', '🤁E, htmlResponse, null, true);
     chatHistory.push({ role: "assistant", content: botResponse });
     
   } catch (err) {
     if(document.getElementById(typingId)) document.getElementById(typingId).remove();
-    appendChatMsg('bot', '🤖', 'Sorry, I encountered a network error connecting to WAFEO Intelligence.');
+    appendChatMsg('bot', '🤁E, 'Sorry, I encountered a network error connecting to WAFEO Intelligence.');
     console.error(err);
   }
 }
@@ -1226,6 +1229,6 @@ async function loadAdminUsers() {
   } catch (err) {
     console.warn('Failed to load admin users:', err.message);
     panel.style.display = 'block';
-    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted)">Server unavailable — user profiles cannot be loaded.</div>';
+    list.innerHTML = '<div style="padding:12px;font-size:13px;color:var(--text-muted)">Server unavailable  Euser profiles cannot be loaded.</div>';
   }
 }

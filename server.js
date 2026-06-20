@@ -27,6 +27,7 @@ function hashPassword(password) {
 app.use(cors({
   origin: [
     'https://norbertmuzila.github.io',
+    'https://wafeo.vercel.app',
     'http://localhost:3000',
     'http://localhost:5500',
     'http://127.0.0.1:5500',
@@ -46,7 +47,46 @@ app.use(express.static(path.join(__dirname)));
 // ─── HELPERS ────────────────────────────────────────────────
 const dataPath = (filename) => path.join(__dirname, 'data', filename);
 
-function readData(filename) {
+// Firebase Firestore connection
+let db;
+try {
+  const firebase = require('./lib/firebase');
+  db = firebase.db;
+  console.log('[firebase] Firestore connected');
+} catch (err) {
+  console.warn('[firebase] Firestore not available, falling back to JSON files:', err.message);
+  db = null;
+}
+
+// Read data from Firestore first, fall back to JSON files
+async function readData(filename) {
+  const collectionMap = {
+    'users.json': { type: 'collection', name: 'users' },
+    'stats.json': { type: 'doc', collection: 'config', docId: 'stats' },
+    'alerts.json': { type: 'collection', name: 'alerts' },
+    'satellites.json': { type: 'collection', name: 'satellites' },
+    'ndvi.json': { type: 'collection', name: 'ndvi' },
+    'fields.json': { type: 'collection', name: 'fields' },
+    'water.json': { type: 'doc', collection: 'config', docId: 'water' },
+    'food-security.json': { type: 'doc', collection: 'config', docId: 'food-security' },
+    'countries.json': { type: 'collection', name: 'countries' },
+  };
+  if (db) {
+    try {
+      const mapping = collectionMap[filename];
+      if (mapping) {
+        if (mapping.type === 'collection') {
+          const snapshot = await db.collection(mapping.name).get();
+          return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const doc = await db.collection(mapping.collection).doc(mapping.docId).get();
+          return doc.exists ? doc.data() : null;
+        }
+      }
+    } catch (err) {
+      console.warn(`[firebase] Error reading ${filename}, falling back to JSON:`, err.message);
+    }
+  }
   try {
     return JSON.parse(fs.readFileSync(dataPath(filename), 'utf8'));
   } catch (err) {
@@ -251,13 +291,13 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── Auth: Login ─────────────────────────────────────────────
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password required' });
   }
 
-  const users = readData('users.json');
+  const users = await readData('users.json');
   if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
   const user = users.find(u =>
@@ -309,7 +349,7 @@ app.post('/api/auth/google', async (req, res) => {
     }
 
     // Check if user exists in our system, or create a new one
-    const users = readData('users.json');
+    const users = await readData('users.json');
     if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
     let user = users.find(u => u.email && u.email.toLowerCase() === payload.email.toLowerCase());
@@ -370,7 +410,7 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Password must be at least 6 characters' });
   }
 
-  const users = readData('users.json');
+  const users = await readData('users.json');
   if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
   // Check for duplicate username or email
@@ -417,7 +457,7 @@ app.get('/api/admin/users', auth, (req, res) => {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  const users = readData('users.json');
+  const users = await readData('users.json');
   if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
   // Return users without passwords
@@ -426,50 +466,50 @@ app.get('/api/admin/users', auth, (req, res) => {
 });
 
 // ─── Dashboard Stats ─────────────────────────────────────────
-app.get('/api/dashboard/stats', auth, (req, res) => {
-  const stats = readData('stats.json');
+app.get('/api/dashboard/stats', auth, async (req, res) => {
+  const stats = await readData('stats.json');
   if (!stats) return res.status(500).json({ error: 'Stats unavailable' });
   res.json(stats);
 });
 
 // ─── Alerts ──────────────────────────────────────────────────
-app.get('/api/alerts', auth, (req, res) => {
-  const data = readData('alerts.json');
+app.get('/api/alerts', auth, async (req, res) => {
+  const data = await readData('alerts.json');
   if (!data) return res.status(500).json({ error: 'Alerts unavailable' });
   res.json({ alerts: data, total: data.length });
 });
 
 // ─── Satellites ──────────────────────────────────────────────
-app.get('/api/satellites', auth, (req, res) => {
-  const data = readData('satellites.json');
+app.get('/api/satellites', auth, async (req, res) => {
+  const data = await readData('satellites.json');
   if (!data) return res.status(500).json({ error: 'Satellite data unavailable' });
   res.json({ satellites: data, count: data.length, lastUpdated: new Date().toISOString() });
 });
 
 // ─── NDVI by Region ──────────────────────────────────────────
-app.get('/api/analytics/ndvi-by-region', auth, (req, res) => {
-  const data = readData('ndvi.json');
+app.get('/api/analytics/ndvi-by-region', auth, async (req, res) => {
+  const data = await readData('ndvi.json');
   if (!data) return res.status(500).json({ error: 'NDVI data unavailable' });
   res.json({ data, source: 'Sentinel-2 / MODIS', updatedAt: new Date().toISOString() });
 });
 
 // ─── Fields (Precision Farming) ──────────────────────────────
-app.get('/api/fields', auth, (req, res) => {
-  const data = readData('fields.json');
+app.get('/api/fields', auth, async (req, res) => {
+  const data = await readData('fields.json');
   if (!data) return res.status(500).json({ error: 'Field data unavailable' });
   res.json({ fields: data, total: data.length });
 });
 
 // ─── Water Resources ─────────────────────────────────────────
-app.get('/api/water', auth, (req, res) => {
-  const data = readData('water.json');
+app.get('/api/water', auth, async (req, res) => {
+  const data = await readData('water.json');
   if (!data) return res.status(500).json({ error: 'Water data unavailable' });
   res.json(data);
 });
 
 // ─── Food Security ────────────────────────────────────────────
-app.get('/api/food-security', auth, (req, res) => {
-  const data = readData('food-security.json');
+app.get('/api/food-security', auth, async (req, res) => {
+  const data = await readData('food-security.json');
   if (!data) return res.status(500).json({ error: 'Food security data unavailable' });
   res.json(data);
 });

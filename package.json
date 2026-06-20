@@ -1,14 +1,14 @@
 {
   "name": "wafeo-digital-twin",
   "version": "2.0.0",
-  "description": "WAFEO Digital Twin — Water, Agriculture & Food Systems Platform",
+  "description": "WAFEO Digital Twin  EWater, Agriculture & Food Systems Platform",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js","seed": "node firebase-seed.js"
   },
   "dependencies": {
     "compression": "^1.7.4",
@@ -16,6 +16,6 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "google-auth-library": "^9.7.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2","firebase-admin": "^12.0.0"
   }
 }
