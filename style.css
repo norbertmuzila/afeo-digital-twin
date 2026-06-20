@@ -1113,79 +1113,14 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .upc-badge.farmer { background: #16a34a; }
 .upc-badge.policy { background: #7c3aed; }
 .upc-badge.researcher { background: #0891b2; }
-/* ─── SPLASH SCREEN ANIMATIONS ─── */
-#splashScreen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background-color: #0a0f1a; /* Deep dark blue space color */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.8s ease;
-}
-
-#splashScreen.slide-up {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.splash-logo {
-  font-family: 'Cinzel', serif; /* or use the existing WAFEO font */
-  font-size: 4rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  display: flex;
-  gap: 0.1em;
-}
-
-.splash-letter {
-  opacity: 0;
-  transform: translateY(20px) scale(0.95);
-  animation: splashFadeIn 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-.splash-logo .waf-w { animation-delay: 0.1s; }
-.splash-logo .waf-a { animation-delay: 0.25s; }
-.splash-logo .waf-f { animation-delay: 0.4s; }
-.splash-logo .waf-e { animation-delay: 0.55s; }
-.splash-logo .waf-o { animation-delay: 0.7s; }
-
-@keyframes splashFadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-
 /* ─── DEDICATED SITE INTELLIGENCE PAGE ─── */
-.si-tab-btn {
-  background: none; border: none; padding: 12px 24px; font-weight: 600; cursor: pointer; color: var(--text-muted);
-  border-bottom: 2px solid transparent; transition: all 0.2s; font-size: 15px;
-}
-.si-tab-btn.active {
-  color: var(--accent-blue); border-bottom-color: var(--accent-blue);
-}
-.si-map-btn {
-  background: none; border: none; padding: 8px 16px; font-weight: 600; cursor: pointer; color: var(--text-muted);
-}
-.si-map-btn.active {
-  background: var(--accent-blue); color: #fff;
-}
-.si-map-panel.mode-3d #siMapWrapper {
-  transform: perspective(1200px) rotateX(60deg) scale(1.4) translateY(-15%);
-}
+.si-tab-btn { background: none; border: none; padding: 12px 24px; font-weight: 600; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; transition: all 0.2s; font-size: 15px; }
+.si-tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+.si-map-btn { background: none; border: none; padding: 8px 16px; font-weight: 600; cursor: pointer; color: var(--text-muted); }
+.si-map-btn.active { background: var(--accent-blue); color: #fff; }
+.si-map-panel.mode-3d #siMapWrapper { transform: perspective(1200px) rotateX(60deg) scale(1.4) translateY(-15%); }
 
-.si-card {
-  background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 8px;
-}
+.si-card { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 8px; }
 .si-card-hdr { display: flex; justify-content: space-between; align-items: center; }
 .si-card-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-dark); font-size: 14px;}
 .si-icon { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; color: var(--text-muted); }
