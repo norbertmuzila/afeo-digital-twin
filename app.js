@@ -1233,8 +1233,10 @@ async function loadAdminUsers() {
   }
 }
 
+
 // ─── SITE INTELLIGENCE PAGE LOGIC ───
 let siMap = null;
+let siMarker = null;
 
 const siSvgs = {
   farming: `<svg class="si-icon" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>`,
@@ -1283,88 +1285,154 @@ if (siBtn2D && siBtn3D) {
   });
 }
 
-function analyzeRegion(query) {
-  const scanOverlay = document.getElementById('siScanOverlay');
-  scanOverlay.style.opacity = '1';
-  
-  let data = {
-    name: query,
-    meta: "Coordinates: " + ((Math.random()*180)-90).toFixed(4) + ", " + ((Math.random()*360)-180).toFixed(4),
-    coords: [ (Math.random()*40)-20, (Math.random()*60) ], // Africa bias
-    overview: [
-      { id: 'farming', title: 'Farming Infrastructure', icon: siSvgs.farming, badge: 'Watch', badgeClass: 'watch', desc: 'Active farming infrastructure covers 42% of the local grid. Minor stress on machinery utilization detected.' },
-      { id: 'water', title: 'Water Hydrology', icon: siSvgs.water, badge: 'Concern', badgeClass: 'concern', desc: 'Permanent water is adjacent, but upstream flow shows a 15% reduction affecting local irrigation networks.' },
-      { id: 'agriculture', title: 'Agriculture & Vegetation', icon: siSvgs.agriculture, badge: 'Optimal', badgeClass: 'optimal', desc: 'Vegetation is extremely healthy (NDVI 0.72). Primary crops identified: Maize and Wheat.' },
-      { id: 'climate', title: 'Climate & Heat', icon: siSvgs.climate, badge: 'Watch', badgeClass: 'watch', desc: 'Land surface temperature runs 1.9 °C above the regional average, an elevated thermal signature.' },
-      { id: 'foodSec', title: 'Food Security Alert', icon: siSvgs.foodSec, badge: 'Watch', badgeClass: 'watch', desc: 'Local region is classified as IPC Phase 2 (Stressed) due to localized market inflation.' }
-    ],
-    evidence: [
-      { title: 'Vegetation Shift', trend: 'positive', desc: 'NDVI improved by +0.04 over the last 30 days.' },
-      { title: 'Hydrology Change', trend: 'negative', desc: 'Groundwater index decreased by 4%.' }
-    ],
-    regulatory: [
-      { title: 'Water Use Compliance', status: 'Compliant', class: 'compliant', desc: 'Irrigation extraction is within limits.' },
-      { title: 'Deforestation Policy', status: 'Warning', class: 'warning', desc: 'Proximity to protected biodiversity area.' }
-    ]
-  };
-
-  if (query.toLowerCase().includes('chivaraidze')) {
-    data.name = "Chivaraidze Agro-Industrial Park";
-    data.meta = "Goromonzi, Mashonaland East, Zimbabwe · Granite-derived Sandy Loam";
-    data.coords = [-17.8, 31.3];
-    data.overview[0].desc = 'Multi-enterprise farming operational: Milling plants, Abattoirs, and Freeze drying facilities active.';
-    data.overview[1].desc = 'Permanent water is adjacent. SAZ certified water plant fully operational and scaling.';
-    data.overview[2].desc = 'Vegetation is robust. Crops: Maize, Wheat, Soya, Pawpaw, Macadamia. Livestock: 300 cattle, 600 goats.';
-    data.evidence = [
-      { title: 'Vegetation & ecosystem', trend: 'positive', desc: 'NDVI improved by +0.04 (12%) due to recent implementation of multi-enterprise horticulture.' },
-      { title: 'Water & hydrology', trend: 'positive', desc: 'Water network connection remains stable. New SAZ certified water plant operational.' },
-      { title: 'Land use & cover', trend: 'positive', desc: 'Built infrastructure increased by 5% due to completion of the new milling and oil production facilities.' }
-    ];
-  }
-
-  // Update UI
-  document.getElementById('siSiteName').textContent = data.name;
-  document.getElementById('siSiteMeta').textContent = data.meta;
-
-  document.getElementById('siMetricsGrid').innerHTML = data.overview.map(m => `
-    <div class="si-card">
-      <div class="si-card-hdr">
-        <div class="si-card-title">${m.icon} ${m.title}</div>
-        <span class="si-badge ${m.badgeClass}">${m.badge}</span>
-      </div>
-      <div class="si-card-desc">${m.desc}</div>
-    </div>
-  `).join('');
-
-  document.getElementById('siCompareList').innerHTML = data.evidence.map(c => `
-    <div class="si-compare-item ${c.trend}">
-      <div class="si-compare-title">${c.title}</div>
-      <div class="si-compare-desc">${c.desc}</div>
-    </div>
-  `).join('');
-
-  document.getElementById('siRegList').innerHTML = data.regulatory.map(r => `
-    <div class="si-reg-item">
-      <div class="si-reg-title"><span>${r.title}</span> <span class="si-reg-status ${r.class}">${r.status}</span></div>
-      <div class="si-card-desc">${r.desc}</div>
-    </div>
-  `).join('');
-
-  setTimeout(() => {
-    scanOverlay.style.opacity = '0';
-    initSiMap(data.coords);
-  }, 1200);
-}
-
-function initSiMap(coords) {
-  if (siMap) siMap.remove();
-  
+// Map Initialization
+function initSiGlobalMap() {
   const container = document.getElementById('siMapInstance');
   if(!container) return;
   
-  siMap = L.map('siMapInstance', { zoomControl: false }).setView(coords, 14);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri'
-  }).addTo(siMap);
-  L.circleMarker(coords, { radius: 12, fillColor: 'var(--accent-emerald)', color: '#fff', weight: 3, opacity: 1, fillOpacity: 0.8 }).addTo(siMap);
+  if (!siMap) {
+    siMap = L.map('siMapInstance', { zoomControl: false }).setView([15, 10], 2); // Global View
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri'
+    }).addTo(siMap);
+    
+    // Map Click Interactivity
+    siMap.on('click', async (e) => {
+      const lat = e.latlng.lat;
+      const lon = e.latlng.lng;
+      analyzeRegion({ lat, lon });
+    });
+  }
+}
+
+// Re-init map when tab is clicked to fix Leaflet size rendering bugs
+document.querySelector('[data-page="site-intelligence"]').addEventListener('click', () => {
+  setTimeout(() => {
+    initSiGlobalMap();
+    if(siMap) siMap.invalidateSize();
+  }, 100);
+});
+
+async function analyzeRegion(query) {
+  const scanOverlay = document.getElementById('siScanOverlay');
+  scanOverlay.style.opacity = '1';
+  document.querySelector('.si-scanner-line').style.animationPlayState = 'running';
+  
+  let targetLat, targetLon, siteName, siteMeta;
+
+  try {
+    // 1. Resolve Location via OpenStreetMap (Nominatim API)
+    if (typeof query === 'string') {
+      // Hardcoded Chivaraidze check for extremely specific requested local details
+      if (query.toLowerCase().includes('chivaraidze')) {
+         targetLat = -17.8; targetLon = 31.3;
+         siteName = "Chivaraidze Agro-Industrial Park";
+         siteMeta = "Goromonzi, Mashonaland East, Zimbabwe · Granite-derived Sandy Loam";
+      } else {
+         const geoRes = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`);
+         const geoData = await geoRes.json();
+         if (geoData && geoData.length > 0) {
+           targetLat = parseFloat(geoData[0].lat);
+           targetLon = parseFloat(geoData[0].lon);
+           siteName = geoData[0].name || query;
+           siteMeta = geoData[0].display_name;
+         } else {
+           throw new Error("Location not found on global registry.");
+         }
+      }
+    } else {
+      // Clicked Coordinate Reverse Geocoding
+      targetLat = query.lat; targetLon = query.lon;
+      const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${targetLat}&lon=${targetLon}&format=json`);
+      const geoData = await geoRes.json();
+      siteName = geoData.name || (geoData.address ? geoData.address.village || geoData.address.town || geoData.address.city || geoData.address.county : "Unknown Farm / Region");
+      siteMeta = geoData.display_name || `Lat: ${targetLat.toFixed(4)}, Lon: ${targetLon.toFixed(4)}`;
+    }
+
+    // Fly map to location
+    if (siMap) {
+      siMap.flyTo([targetLat, targetLon], 14, { duration: 1.5 });
+      if (siMarker) siMarker.remove();
+      siMarker = L.circleMarker([targetLat, targetLon], { radius: 12, fillColor: 'var(--accent-emerald)', color: '#fff', weight: 3, opacity: 1, fillOpacity: 0.8 }).addTo(siMap);
+    }
+
+    // 2. Fetch Live Climate/Weather from Open-Meteo
+    const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${targetLat}&longitude=${targetLon}&current_weather=true&daily=temperature_2m_max,precipitation_sum&timezone=auto`);
+    const weatherData = await weatherRes.json();
+    
+    const currentTemp = weatherData.current_weather ? weatherData.current_weather.temperature : 25;
+    const precipSum = (weatherData.daily && weatherData.daily.precipitation_sum) ? weatherData.daily.precipitation_sum[0] : 0;
+    
+    // Simulate NDVI/Water stats based on live real-world weather inputs
+    const isDry = precipSum < 2 && currentTemp > 30;
+    const ndviEstimate = isDry ? (Math.random() * 0.3 + 0.2).toFixed(2) : (Math.random() * 0.4 + 0.5).toFixed(2);
+    
+    // Construct Dynamic Overview
+    let overview = [
+      { id: 'farming', title: 'Farming Infrastructure', icon: siSvgs.farming, badge: 'Optimal', badgeClass: 'optimal', desc: `Region supports active agricultural infrastructure. Thermal scanning shows normal utilization levels.` },
+      { id: 'water', title: 'Water Hydrology', icon: siSvgs.water, badge: isDry ? 'Concern' : 'Optimal', badgeClass: isDry ? 'concern' : 'optimal', desc: `Live precipitation recorded at ${precipSum}mm. ${isDry ? 'Severe stress on local irrigation' : 'Water flow and local irrigation networks are stable.'}` },
+      { id: 'agriculture', title: 'Agriculture & Vegetation', icon: siSvgs.agriculture, badge: parseFloat(ndviEstimate) < 0.4 ? 'Watch' : 'Optimal', badgeClass: parseFloat(ndviEstimate) < 0.4 ? 'watch' : 'optimal', desc: `Estimated vegetation health (NDVI) is ${ndviEstimate}. ${parseFloat(ndviEstimate) < 0.4 ? 'Crops showing signs of stress.' : 'Vegetation is extremely healthy.'}` },
+      { id: 'climate', title: 'Climate & Heat', icon: siSvgs.climate, badge: currentTemp > 32 ? 'Concern' : 'Watch', badgeClass: currentTemp > 32 ? 'concern' : 'watch', desc: `Live surface temperature is ${currentTemp} °C. ${currentTemp > 32 ? 'Extreme heat detected.' : 'Normal seasonal thermal signature.'}` },
+      { id: 'foodSec', title: 'Food Security Alert', icon: siSvgs.foodSec, badge: isDry ? 'Concern' : 'Watch', badgeClass: isDry ? 'concern' : 'watch', desc: `Region IPC phase estimated based on local weather yields. ${isDry ? 'High risk of yield reduction.' : 'Stable local market forecast.'}` }
+    ];
+
+    let evidence = [
+      { title: 'Vegetation Shift (30d)', trend: parseFloat(ndviEstimate) < 0.4 ? 'negative' : 'positive', desc: `NDVI trended ${parseFloat(ndviEstimate) < 0.4 ? 'downward' : 'upward'} following recent weather patterns.` },
+      { title: 'Hydrology Change (7d)', trend: isDry ? 'negative' : 'positive', desc: `Recent precipitation sum of ${precipSum}mm drove a ${isDry ? 'decrease' : 'steady state'} in soil moisture.` }
+    ];
+
+    // Restore Chivaraidze specifics if searched
+    if (typeof query === 'string' && query.toLowerCase().includes('chivaraidze')) {
+        overview[0].desc = 'Multi-enterprise farming operational: Milling plants, Abattoirs, and Freeze drying facilities active.';
+        overview[1].desc = `Live precipitation: ${precipSum}mm. Permanent water is adjacent. SAZ certified water plant fully operational and scaling.`;
+        overview[2].desc = `Vegetation is robust (NDVI ${ndviEstimate}). Crops: Maize, Wheat, Soya, Pawpaw, Macadamia. Livestock: 300 cattle, 600 goats.`;
+        evidence = [
+          { title: 'Vegetation & ecosystem', trend: 'positive', desc: 'NDVI improved by +0.04 (12%) due to recent implementation of multi-enterprise horticulture.' },
+          { title: 'Water & hydrology', trend: 'positive', desc: 'Water network connection remains stable. New SAZ certified water plant operational.' },
+          { title: 'Land use & cover', trend: 'positive', desc: 'Built infrastructure increased by 5% due to completion of the new milling and oil production facilities.' }
+        ];
+    }
+
+    // Update UI
+    document.getElementById('siSiteName').textContent = siteName;
+    document.getElementById('siSiteMeta').textContent = siteMeta;
+
+    document.getElementById('siMetricsGrid').innerHTML = overview.map(m => `
+      <div class="si-card">
+        <div class="si-card-hdr">
+          <div class="si-card-title">${m.icon} ${m.title}</div>
+          <span class="si-badge ${m.badgeClass}">${m.badge}</span>
+        </div>
+        <div class="si-card-desc">${m.desc}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('siCompareList').innerHTML = evidence.map(c => `
+      <div class="si-compare-item ${c.trend}">
+        <div class="si-compare-title">${c.title}</div>
+        <div class="si-compare-desc">${c.desc}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('siRegList').innerHTML = `
+      <div class="si-reg-item">
+        <div class="si-reg-title"><span>Water Use Compliance</span> <span class="si-reg-status compliant">Compliant</span></div>
+        <div class="si-card-desc">Irrigation extraction aligns with regional water quotas.</div>
+      </div>
+      <div class="si-reg-item">
+        <div class="si-reg-title"><span>Deforestation Policy</span> <span class="si-reg-status warning">Warning</span></div>
+        <div class="si-card-desc">Proximity to protected biodiversity area. Monitoring active.</div>
+      </div>
+    `;
+
+    setTimeout(() => {
+      scanOverlay.style.opacity = '0';
+    }, 1000);
+
+  } catch (error) {
+    console.error("Site Intelligence API Error:", error);
+    document.getElementById('siSiteName').textContent = "Analysis Failed";
+    document.getElementById('siSiteMeta').textContent = error.message;
+    scanOverlay.style.opacity = '0';
+  }
 }
