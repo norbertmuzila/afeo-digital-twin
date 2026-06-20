@@ -6,6 +6,21 @@
 const API = window.location.hostname.includes('vercel.app') || window.location.hostname === 'localhost'
   ? '/api'
   : 'https://wafeo.vercel.app/api';
+// ─── SPLASH SCREEN INTRO ───
+window.addEventListener('load', () => {
+  const splash = document.getElementById('splashScreen');
+  if (splash) {
+    // The total animation takes ~1.3s (0.7s delay + 0.6s fade in). Hold for another 1s.
+    setTimeout(() => {
+      splash.classList.add('slide-up');
+      // Remove from DOM after transition completes to prevent blocking interaction
+      setTimeout(() => {
+        splash.style.display = 'none';
+      }, 800);
+    }, 2000); // Wait 2 seconds before sliding up
+  }
+});
+
 let authToken = null;
 let currentUser = null;
 
