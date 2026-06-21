@@ -13,7 +13,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <!-- Chart.js for Water Body Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -506,6 +506,14 @@
     <div class="page" id="pg-reports"><div class="pg-pad">
       <div class="panel"><div class="panel-hdr"><h3>📋 Reports & Analytics</h3><span class="panel-badge">Automated</span></div>
         <div style="padding:16px;font-size:13px;line-height:1.7;color:var(--text-secondary)">
+          
+        <!-- WAFEO Report Generator Button -->
+        <div style="margin-bottom: 20px; text-align: center;">
+          <button id="btnGenerateReport" style="background: linear-gradient(135deg, var(--accent-emerald), #0b8043); color: #fff; padding: 14px 28px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
+            <span style="font-size: 20px;">??</span> Generate Comprehensive WAFEO Report
+          </button>
+        </div>
+
           <p><strong>Available Reports:</strong> Weekly crisis briefings, monthly trend summaries, custom region/theme reports. Formats: PDF (visual), CSV (data), GeoTIFF (spatial).</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0">
             <div style="background:var(--bg-deep);padding:12px;border-radius:8px;cursor:pointer">
@@ -690,6 +698,6 @@
   </div>
 </div>
 
-<script src="app.js?v=14"></script>
+<script src="app.js?v=15"></script>
 </body>
 </html>
