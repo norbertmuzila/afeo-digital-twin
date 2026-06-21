@@ -326,6 +326,7 @@ app.post('/api/auth/logout', auth, (req, res) => {
 });
 
 // ─── Auth: Google Sign-In ────────────────────────────────────
+// ─── Auth: Google Sign-In ────────────────────────────────────
 app.post('/api/auth/google', async (req, res) => {
   const { credential } = req.body || {};
   if (!credential) {
@@ -333,7 +334,6 @@ app.post('/api/auth/google', async (req, res) => {
   }
 
   try {
-    // Verify the Google ID token cryptographically  Eno mock fallback
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: GOOGLE_CLIENT_ID, 
@@ -344,43 +344,43 @@ app.post('/api/auth/google', async (req, res) => {
       return res.status(401).json({ error: 'Invalid Google token' });
     }
 
-    // Only allow verified Google accounts
     if (!payload.email_verified) {
       return res.status(403).json({ error: 'Google email is not verified. Please verify your email first.' });
     }
 
-    // Check if user exists in our system, or create a new one
     const users = await readData('users.json');
     if (!users) return res.status(500).json({ error: 'User store unavailable' });
 
     let user = users.find(u => u.email && u.email.toLowerCase() === payload.email.toLowerCase());
     
-    // If user doesn't exist, auto-register them (Google Sign-Up)
     if (!user) {
+      const maxId = users.reduce((max, u) => Math.max(max, Number(u.id) || 0), 0);
       const newUser = {
-        id: users.length + 1,
+        id: maxId + 1,
         username: payload.email.split('@')[0],
         email: payload.email,
         name: payload.name || payload.email.split('@')[0],
-        role: 'researcher', // default role for new Google users
-        password: '', // no password for Google-authenticated users
+        role: 'researcher', 
+        password: '', 
         googleId: payload.sub,
         picture: payload.picture || '',
         authProvider: 'google',
         registeredAt: new Date().toISOString()
       };
       users.push(newUser);
-      // Persist the new user to disk
       try {
-        fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
-        console.log(`[google-auth] New user registered: ${newUser.email}`);
+        if (db) {
+          await db.collection('users').doc(String(newUser.id)).set(newUser);
+          console.log(`[google-auth] User saved to Firestore: ${newUser.email}`);
+        } else {
+          fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+        }
       } catch (writeErr) {
         console.error('[google-auth] Failed to persist new user:', writeErr.message);
       }
       user = newUser;
     }
 
-    // Generate JWT token
     const jwtToken = jwt.sign(
       { id: user.id, username: user.username, role: user.role, name: user.name, email: user.email },
       JWT_SECRET,
@@ -395,64 +395,63 @@ app.post('/api/auth/google', async (req, res) => {
     res.status(401).json({ error: 'Google authentication failed. Please try again.' });
   }
 });
-
-
-
 // ─── Auth: Registration (Email-based) ────────────────────────
 app.post('/api/auth/register', async (req, res) => {
-  const { name, email, username, password, region } = req.body || {};
-  if (!name || !email || !username || !password) {
-    return res.status(400).json({ error: 'All fields are required (name, email, username, password)' });
-  }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return res.status(400).json({ error: 'Invalid email address' });
-  }
-  if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
-  }
-
-  const users = await readData('users.json');
-  if (!users) return res.status(500).json({ error: 'User store unavailable' });
-
-  // Check for duplicate username or email
-  if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-    return res.status(409).json({ error: 'Username already taken' });
-  }
-  if (users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
-    return res.status(409).json({ error: 'Email already registered' });
-  }
-
-  const newUser = {
-    id: users.length + 1,
-    username,
-    email,
-    name,
-    password: hashPassword(password),
-    role: 'researcher',
-    region: region || 'Global',
-    registeredAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
   try {
-    fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
-  } catch (err) {
-    console.error('[register] Failed to save user:', err.message);
-    return res.status(500).json({ error: 'Failed to save registration' });
+    const { name, email, username, password, region } = req.body || {};
+    if (!name || !email || !username || !password) {
+      return res.status(400).json({ error: 'All fields are required (name, email, username, password)' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const users = await readData('users.json');
+    if (!users) return res.status(500).json({ error: 'User store unavailable' });
+
+    if (users.find(u => u.username && u.username.toLowerCase() === username.toLowerCase())) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
+    if (users.find(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    const maxId = users.reduce((max, u) => Math.max(max, Number(u.id) || 0), 0);
+    const newUser = {
+      id: maxId + 1,
+      username,
+      email,
+      name,
+      password: hashPassword(password),
+      role: 'researcher',
+      region: region || 'Global',
+      registeredAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    
+    if (db) {
+      await db.collection('users').doc(String(newUser.id)).set(newUser);
+    } else {
+      fs.writeFileSync(dataPath('users.json'), JSON.stringify(users, null, 2));
+    }
+
+    const token = jwt.sign(
+      { id: newUser.id, username: newUser.username, role: newUser.role, name: newUser.name },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
+
+    const { password: _pw, ...safeUser } = newUser;
+    res.status(201).json({ token, user: safeUser });
+  } catch (topErr) {
+    console.error('[register] error:', topErr);
+    res.status(500).json({ error: 'Registration failed: ' + topErr.message });
   }
-
-  const token = jwt.sign(
-    { id: newUser.id, username: newUser.username, role: newUser.role, name: newUser.name },
-    JWT_SECRET,
-    { expiresIn: '8h' }
-  );
-
-  const { password: _pw, ...safeUser } = newUser;
-  console.log(`[register] New user: ${username} (${email}) from ${region}`);
-  res.status(201).json({ token, user: safeUser });
 });
-
-// ─── Admin: List All Users ───────────────────────────────────
 app.get('/api/admin/users', auth, async (req, res) => {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' });
