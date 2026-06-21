@@ -78,6 +78,7 @@ const aiFabBtn = document.getElementById('aiFabBtn');
 const aiWidgetPanel = document.getElementById('aiWidgetPanel');
 const aiCloseBtn = document.getElementById('aiCloseBtn');
 const aiInput = document.getElementById('aiInput');
+const aiSendBtn = document.getElementById('aiSendBtn');
 
 if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
   aiFabBtn.addEventListener('click', () => {
@@ -87,6 +88,14 @@ if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
   aiCloseBtn.addEventListener('click', () => {
     aiWidgetPanel.style.display = 'none';
   });
+  if (aiSendBtn) {
+    aiSendBtn.addEventListener('click', handleUserMsg);
+  }
+  if (aiInput) {
+    aiInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleUserMsg();
+    });
+  }
 }
 
 async function doLogin() {
