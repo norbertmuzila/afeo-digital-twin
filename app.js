@@ -1027,7 +1027,7 @@ async function handleUserMsg() {
   chatHistory.push({ role: "user", content: text });
   
   const typingId = 'typing-' + Date.now();
-  appendChatMsg('bot', '🤖', 'Thinking...', typingId);
+  appendChatMsg('bot', '🤖', '<em>Thinking...</em>', typingId);
   
   try {
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1434,5 +1434,16 @@ async function analyzeRegion(query) {
     document.getElementById('siSiteName').textContent = "Analysis Failed";
     document.getElementById('siSiteMeta').textContent = error.message;
     scanOverlay.style.opacity = '0';
+  }
+}
+
+
+function toggleTheme() {
+  document.documentElement.classList.toggle('dark-theme');
+  const btn = document.getElementById('themeToggle');
+  if (document.documentElement.classList.contains('dark-theme')) {
+    btn.textContent = '☀️';
+  } else {
+    btn.textContent = '🌙';
   }
 }

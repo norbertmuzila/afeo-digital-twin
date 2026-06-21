@@ -302,7 +302,7 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 
 .search-box {
   display: flex; align-items: center; gap: 8px; padding: 7px 14px;
-  border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); width: 260px;
+  border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); width: 200px;
 }
 .search-box input {
   border: none; background: transparent; color: var(--text-primary);
@@ -1146,4 +1146,17 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
   10% { opacity: 1; }
   90% { opacity: 1; }
   100% { top: 100%; opacity: 0; }
+}
+
+
+:root.dark-theme {
+  --bg-primary: #0f111a;
+  --bg-secondary: #1a1d2d;
+  --bg-tertiary: #24283b;
+  --text-primary: #c0caf5;
+  --text-secondary: #a9b1d6;
+  --text-muted: #565f89;
+  --border: #292e42;
+  --bg-light: #16161e;
+  --accent-blue: #7aa2f7;
 }

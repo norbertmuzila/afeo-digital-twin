@@ -13,7 +13,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <!-- Chart.js for Water Body Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -215,7 +215,7 @@
         </div>
       </div>
       <div class="tb-right">
-        <div class="hdr-btn" id="themeToggle" title="Toggle Light/Dark Theme">🌙</div>
+        <div class="hdr-btn" id="themeToggle" title="Toggle Light/Dark Theme" style="width:28px; height:28px; font-size:12px;">🌙</div>
         <div class="live-tag" id="dataFreshness"><div class="live-dot"></div>All Sources Fresh</div>
         <div class="search-box"><span>🔍</span><input type="text" placeholder="Search regions, crops..." id="globalSearch"></div>
         <div class="hdr-btn" id="notifBell" onclick="handleNotifClick()" title="Notifications" style="position:relative;cursor:pointer;">🔔<div class="notif" id="notifBadge"></div></div>
@@ -449,7 +449,7 @@
               <h2 style="margin:0; font-family:'Cinzel', serif; color:var(--text-dark);">Environmental Site Intelligence</h2>
               <p style="margin:4px 0 0 0; color:var(--text-muted); font-size:14px;">Analyze Farming, Water, Agriculture, and Climate metrics for any region.</p>
             </div>
-            <div class="site-search-wrapper" style="position:relative; width:400px;">
+            <div class="site-search-wrapper" style="position:relative; width:260px;">
               <input type="text" id="siSearchInput" placeholder="Enter Coordinates, Region, or Farm Name..." style="width:100%; padding:12px 40px 12px 20px; border-radius:30px; border:2px solid var(--border); background:var(--bg-light); color:var(--text-dark); font-family:inherit; outline:none; transition:border-color 0.2s;">
               <button id="siSearchBtn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; color:var(--accent-blue); font-size:18px;">🔍</button>
             </div>
@@ -685,6 +685,6 @@
   </div>
 </div>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
