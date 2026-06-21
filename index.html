@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WAFEO — Digital Twin | Water & Agriculture EO Platform</title>
+<title>WAFEO</title>
 <link rel="icon" type="image/svg+xml" href="assets/wafeo-logo.svg">
 <link rel="apple-touch-icon" href="assets/wafeo-logo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <!-- Chart.js for Water Body Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="style.css?v=16">
+<link rel="stylesheet" href="style.css?v=17">
 </head>
 <body>
 
@@ -77,6 +77,18 @@
         <strong>NB:</strong> Forgot Password? <a href="#">Reset password</a><br>
         <span style="font-weight: normal; margin-top: 8px; display: inline-block;">New user? <a href="#" onclick="event.preventDefault(); document.getElementById('registerModal').classList.add('show');">Sign Up</a></span>
       </div>
+
+      <!-- Recommended Terms of Use summary (homepage) -->
+      <div class="login-terms">
+        <strong>Terms of Use — Summary</strong>
+        <ul>
+          <li>WAFEO provides Earth-observation insights for <em>informational and decision-support purposes only</em>; verify critical decisions with official sources.</li>
+          <li>Use the platform lawfully; do not misuse, scrape, overload, or attempt to breach the service or other users' data.</li>
+          <li>You are responsible for safeguarding your account credentials and all activity under your account.</li>
+          <li>Data may be illustrative or modelled and is provided <em>“as is”</em> without warranty of accuracy, completeness, or fitness for a particular purpose.</li>
+          <li>By signing in you accept these terms. Read the <a href="#" onclick="event.preventDefault(); document.getElementById('termsModal').classList.add('show');">full Terms of Service</a>.</li>
+        </ul>
+      </div>
     </div>
 </div>
 
@@ -105,6 +117,56 @@
     </div>
     <button class="btn-emhare" id="btnRegister" onclick="doRegister()" style="margin-top:10px;">CREATE ACCOUNT</button>
     <div style="text-align:center; margin-top:12px; font-size:12px; color:var(--text-muted);">Already have an account? <a href="#" onclick="event.preventDefault(); document.getElementById('registerModal').classList.remove('show');">Log In</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════ TERMS OF SERVICE MODAL ═══════════════ -->
+<div id="termsModal" class="modal-overlay">
+  <div class="modal-card terms-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h2 style="font-size:20px; font-weight:700; color:var(--accent-blue);">Terms of Service</h2>
+      <button onclick="document.getElementById('termsModal').classList.remove('show')" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;">&times;</button>
+    </div>
+    <div class="terms-body">
+      <p class="terms-meta">WAFEO — Water, Agriculture &amp; Food systems Earth-Observation platform. Last updated: 21 June 2026.</p>
+
+      <h3>1. Acceptance of Terms</h3>
+      <p>By accessing or using WAFEO (the “Platform”), you agree to be bound by these Terms of Service. If you do not agree, do not use the Platform.</p>
+
+      <h3>2. Description of Service</h3>
+      <p>WAFEO aggregates satellite Earth-observation data, agricultural indicators, water-resource metrics, and food-security signals to provide analytics and decision-support tools. The Platform is intended for informational purposes and does not constitute professional, agronomic, financial, or emergency advice.</p>
+
+      <h3>3. Accounts &amp; Eligibility</h3>
+      <p>You must provide accurate registration information and keep your credentials confidential. You are responsible for all activity under your account and must notify us promptly of any unauthorised use. You must be legally able to enter into these terms in your jurisdiction.</p>
+
+      <h3>4. Acceptable Use</h3>
+      <p>You agree not to: (a) use the Platform unlawfully or in breach of third-party rights; (b) attempt to gain unauthorised access to systems or other users’ data; (c) scrape, overload, disrupt, reverse-engineer, or circumvent security or rate limits; (d) upload malicious code; or (e) resell or redistribute Platform data except as expressly permitted.</p>
+
+      <h3>5. Data Sources &amp; Accuracy</h3>
+      <p>Data may originate from third-party providers (e.g. NASA, ESA, CHIRPS, ReliefWeb) and may be modelled, delayed, or illustrative. WAFEO does not guarantee the accuracy, completeness, timeliness, or availability of any data and is not liable for decisions made in reliance on it. Verify safety-critical or financial decisions with official sources.</p>
+
+      <h3>6. Intellectual Property</h3>
+      <p>The Platform, its software, design, and branding are owned by WAFEO or its licensors. Third-party data remains subject to the licences of its respective providers. You are granted a limited, non-exclusive, non-transferable right to use the Platform for its intended purpose.</p>
+
+      <h3>7. Privacy</h3>
+      <p>We process account data and usage activity to operate and improve the Platform. We apply reasonable safeguards but cannot guarantee absolute security. Do not submit sensitive personal data you do not wish to be processed.</p>
+
+      <h3>8. Service Availability</h3>
+      <p>The Platform is provided on an “as available” basis. We may modify, suspend, or discontinue features at any time without liability.</p>
+
+      <h3>9. Disclaimer of Warranties</h3>
+      <p>The Platform and all data are provided “as is” and “as available” without warranties of any kind, whether express or implied, including merchantability, fitness for a particular purpose, and non-infringement, to the fullest extent permitted by law.</p>
+
+      <h3>10. Limitation of Liability</h3>
+      <p>To the maximum extent permitted by law, WAFEO and its contributors shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of data, profits, or crops, arising from your use of or inability to use the Platform.</p>
+
+      <h3>11. Changes to These Terms</h3>
+      <p>We may update these Terms from time to time. Continued use after changes become effective constitutes acceptance of the revised Terms.</p>
+
+      <h3>12. Contact</h3>
+      <p>Questions about these Terms can be directed to the WAFEO administrator.</p>
+    </div>
+    <button class="btn-emhare" onclick="document.getElementById('termsModal').classList.remove('show')" style="margin-top:14px;">I UNDERSTAND</button>
   </div>
 </div>
 

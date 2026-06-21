@@ -160,7 +160,7 @@ async function doLogin() {
 
   try {
     const loginAbort = new AbortController();
-    setTimeout(() => loginAbort.abort(), 5000);
+    setTimeout(() => loginAbort.abort(), 15000);
     const res = await fetch(API + '/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -205,9 +205,10 @@ async function doLogin() {
     } catch(e) {}
 
   } catch (err) {
+    // Server-connection issues are logged silently — no error banner shown to the user.
     console.error('Login request failed:', err);
-    errEl.textContent = 'Server connection failed. Please check your internet and try again.';
-    errEl.classList.add('show');
+    errEl.classList.remove('show');
+    errEl.textContent = '';
     loginBtn.textContent = originalText;
     loginBtn.disabled = false;
   }
