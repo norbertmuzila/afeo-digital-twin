@@ -19,33 +19,74 @@ document.getElementById('inPass').addEventListener('keydown', e => { if(e.key===
 function handleGoogleCredentialResponse(response) {
   const errEl = document.getElementById('loginError');
   errEl.classList.remove('show');
-  
-  try {
-    // Decode Google JWT payload locally for GitHub Pages
-    const base64Url = response.credential.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    const payload = JSON.parse(jsonPayload);
-    
-    console.log('Logging in via Google Frontend Mode');
-    authToken = 'demo-token';
-    currentUser = { name: payload.name, email: payload.email, role: 'researcher', picture: payload.picture };
-    
-    document.getElementById('sbName').textContent = currentUser.name;
-    document.getElementById('sbRole').textContent = 'Researcher';
-    document.getElementById('sbAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    
-    document.getElementById('loginScreen').classList.add('out');
-    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-    loadDashboard();
-    initMapOnce();
-  } catch (err) {
-    console.error('Google Sign-In failed locally:', err);
-    errEl.textContent = 'Google sign-in failed. Please try again.';
-    errEl.classList.add('show');
-  }
+
+  (async () => {
+    try {
+      // Send the credential to the backend for verification and user creation
+      const googleAbort = new AbortController();
+      setTimeout(() => googleAbort.abort(), 8000);
+      const res = await fetch(API + '/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
+        signal: googleAbort.signal
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Google authentication failed');
+      }
+
+      // Successful Google login
+      authToken = data.token;
+      currentUser = data.user;
+
+      document.getElementById('sbName').textContent = currentUser.name || currentUser.username;
+      document.getElementById('sbRole').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Researcher';
+      document.getElementById('sbAvatar').textContent = (currentUser.name || 'U').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+      document.getElementById('loginScreen').classList.add('out');
+      setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+      loadDashboard();
+      initMapOnce();
+
+      // Log activity
+      try {
+        fetch(API + '/activity/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+          body: JSON.stringify({ action: 'google_login', details: 'User logged in via Google (' + (currentUser.email || '') + ')' })
+        });
+      } catch(e) {}
+
+    } catch (err) {
+      console.error('Google Sign-In failed:', err);
+      // Fallback: decode JWT locally if backend is unreachable
+      try {
+        const base64Url = response.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        const payload = JSON.parse(jsonPayload);
+
+        authToken = 'google-local-token';
+        currentUser = { name: payload.name, email: payload.email, role: 'researcher', picture: payload.picture };
+
+        document.getElementById('sbName').textContent = currentUser.name;
+        document.getElementById('sbRole').textContent = 'Researcher';
+        document.getElementById('sbAvatar').textContent = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+        document.getElementById('loginScreen').classList.add('out');
+        setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+        loadDashboard();
+        initMapOnce();
+      } catch (fallbackErr) {
+        errEl.textContent = 'Google sign-in failed. Please try again.';
+        errEl.classList.add('show');
+      }
+    }
+  })();
 }
 
 function initGoogleSignIn() {
@@ -111,30 +152,86 @@ async function doLogin() {
     return;
   }
 
-  // Frontend-only authentication for GitHub Pages
-  console.log('Logging in via Frontend Mode');
-  authToken = 'demo-token';
-  currentUser = { name: username || 'Demo User', role: role || 'admin' };
-  document.getElementById('sbName').textContent = currentUser.name;
-  
-  let displayRole = 'Administrator';
-  if (role === 'farmer') displayRole = 'Farmer / Extension';
-  if (role === 'government') displayRole = 'Gov / Policy';
-  if (role === 'researcher') displayRole = 'Researcher';
-  
-  document.getElementById('sbRole').textContent = displayRole;
-  document.getElementById('sbAvatar').textContent = currentUser.name.substring(0, 2).toUpperCase();
+  // Show loading state
+  const loginBtn = document.getElementById('btnLogin');
+  const originalText = loginBtn.textContent;
+  loginBtn.textContent = 'Signing in...';
+  loginBtn.disabled = true;
 
-  document.getElementById('loginScreen').classList.add('out');
-  setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
-  loadDashboard();
-  initMapOnce();
+  try {
+    const loginAbort = new AbortController();
+    setTimeout(() => loginAbort.abort(), 5000);
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      signal: loginAbort.signal
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Invalid username or password.';
+      errEl.classList.add('show');
+      loginBtn.textContent = originalText;
+      loginBtn.disabled = false;
+      return;
+    }
+
+    // Successful login
+    authToken = data.token;
+    currentUser = data.user;
+    document.getElementById('sbName').textContent = currentUser.name || username;
+
+    let displayRole = 'Administrator';
+    if (currentUser.role === 'farmer') displayRole = 'Farmer / Extension';
+    if (currentUser.role === 'government' || currentUser.role === 'policy') displayRole = 'Gov / Policy';
+    if (currentUser.role === 'researcher') displayRole = 'Researcher';
+
+    document.getElementById('sbRole').textContent = displayRole;
+    document.getElementById('sbAvatar').textContent = (currentUser.name || username).substring(0, 2).toUpperCase();
+
+    document.getElementById('loginScreen').classList.add('out');
+    setTimeout(() => { document.getElementById('appShell').classList.add('on'); }, 400);
+    loadDashboard();
+    initMapOnce();
+
+    // Log activity
+    try {
+      fetch(API + '/activity/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify({ action: 'login', details: 'User logged in via credentials' })
+      });
+    } catch(e) {}
+
+  } catch (err) {
+    console.error('Login request failed:', err);
+    errEl.textContent = 'Server connection failed. Please check your internet and try again.';
+    errEl.classList.add('show');
+    loginBtn.textContent = originalText;
+    loginBtn.disabled = false;
+  }
 }
 
 function doLogout() {
+  // Log activity before clearing token
+  if (authToken && authToken !== 'google-local-token') {
+    try {
+      fetch(API + '/activity/log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify({ action: 'logout', details: 'User logged out' })
+      });
+    } catch(e) {}
+  }
   authToken = null; currentUser = null;
   document.getElementById('appShell').classList.remove('on');
   setTimeout(() => { document.getElementById('loginScreen').classList.remove('out'); }, 400);
+  // Clear login fields
+  document.getElementById('inUser').value = '';
+  document.getElementById('inPass').value = '';
+  const errEl = document.getElementById('loginError');
+  if (errEl) { errEl.classList.remove('show'); errEl.textContent = ''; }
 }
 
 // ─── REGISTRATION ───────────────────────────────────────
@@ -192,9 +289,9 @@ async function doRegister() {
       document.getElementById('inPass').focus();
     }, 2000);
   } catch (err) {
-    console.warn('Backend unreachable. Simulating successful registration.');
-    errEl.className = 'register-success';
-    errEl.textContent = '✅ Demo Account created! You can now log in.';
+    console.error('Backend unreachable:', err);
+    errEl.className = 'register-error';
+    errEl.textContent = 'Server connection failed. Please check your internet and try again.';
     errEl.style.display = 'block';
     setTimeout(() => {
       document.getElementById('registerModal').classList.remove('show');

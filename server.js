@@ -28,6 +28,7 @@ app.use(cors({
   origin: [
     'https://norbertmuzila.github.io',
     'https://wafeo.vercel.app',
+    'https://wafeo-webapplication.vercel.app',
     'http://localhost:3000',
     'http://localhost:5500',
     'http://127.0.0.1:5500',
@@ -544,6 +545,45 @@ app.get('/api/satellite/external/:provider', auth, (req, res) => {
 });
 
 // ─── Catch-all ↁESPA ─────────────────────────────────────────
+
+
+// ─── Activity Logging ────────────────────────────────────────
+app.post('/api/activity/log', auth, async (req, res) => {
+  const { action, details } = req.body || {};
+  const logEntry = {
+    userId: req.user.id,
+    username: req.user.username,
+    action: action || 'unknown',
+    details: details || '',
+    timestamp: new Date().toISOString()
+  };
+  try {
+    if (db) {
+      await db.collection('activity_logs').add(logEntry);
+    }
+    res.json({ logged: true });
+  } catch (err) {
+    console.error('[activity] Log failed:', err.message);
+    res.json({ logged: false });
+  }
+});
+
+// ─── Admin: Get Activity Logs ────────────────────────────────
+app.get('/api/admin/activity', auth, async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  try {
+    if (db) {
+      const snapshot = await db.collection('activity_logs').orderBy('timestamp', 'desc').limit(100).get();
+      const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      return res.json({ logs, total: logs.length });
+    }
+    res.json({ logs: [], total: 0, message: 'Firestore not available' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to retrieve activity logs' });
+  }
+});
 
 app.get('/api/seed', async (req, res) => {
   if (req.query.secret !== 'wafeo-admin-seed-2024') return res.status(403).json({ error: 'Unauthorized' });
