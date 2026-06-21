@@ -839,9 +839,22 @@ function showTip(e, text) { const t=document.getElementById('ttp'); t.textConten
 function hideTip() { document.getElementById('ttp').classList.remove('on'); }
 
 // ─── GLOBAL SEARCH ───
-document.getElementById('globalSearch').addEventListener('input', async function() {
-  // Could wire to /api/search — for now just visual feedback
-});
+const globalSearch = document.getElementById('globalSearch');
+if (globalSearch) {
+  globalSearch.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const query = globalSearch.value.trim();
+      if (query) {
+        document.querySelector('[data-page="site-intelligence"]').click();
+        setTimeout(() => {
+          document.getElementById('siSearchInput').value = query;
+          analyzeRegion(query);
+          globalSearch.value = '';
+        }, 300);
+      }
+    }
+  });
+}
 
 // ─── AI ASSISTANT LOGIC ───
 const groqApiKey = ['gsk_g2', 'vb2K0D', 'LNH87GWq', '3GDvW', 'Gdyb3F', 'YmHB7oA', 'AoStLNb', 'Vzbkv', '9nUaZW'].join('');
