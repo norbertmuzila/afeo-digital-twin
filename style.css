@@ -674,6 +674,18 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
   border-right: 1px solid #e2e8f0;
 }
 .waf-logo-box span:last-child { border-right: none; }
+
+/* ─── Brand: logo image to the LEFT of the WAFEO pill ─── */
+.waf-brand { display: inline-flex; align-items: center; gap: 12px; }
+.waf-logo-img {
+  height: 46px; width: auto; display: block; object-fit: contain;
+  background: #ffffff; border-radius: 8px; padding: 2px;
+  image-rendering: -webkit-optimize-contrast;
+}
+.sidebar .waf-logo-img {
+  height: 38px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
 .waf-w { color: #0a6952 !important; }
 .waf-a { color: #538116 !important; }
 .waf-f { color: #b97416 !important; }
