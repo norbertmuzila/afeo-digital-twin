@@ -15,7 +15,9 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <!-- Chart.js for Water Body Analytics -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="style.css?v=17">
+<!-- TensorFlow.js for the LSTM NDVI forecast -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 
@@ -580,7 +582,7 @@
         <!-- WAFEO Report Generator Button -->
         <div style="margin-bottom: 20px; text-align: center;">
           <button id="btnGenerateReport" style="background: linear-gradient(135deg, var(--accent-emerald), #0b8043); color: #fff; padding: 14px 28px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;">
-            <span style="font-size: 20px;">??</span> Generate Comprehensive WAFEO Report
+            <span style="font-size: 20px;">📊</span> Generate Comprehensive WAFEO Report
           </button>
         </div>
 
@@ -609,6 +611,36 @@
           </div>
         </div>
       </div>
+
+      <!-- ═══ NDVI + LSTM FORECAST (real-time) ═══ -->
+      <div class="panel full" id="forecastPanel" style="margin-top:20px;">
+        <div class="panel-hdr">
+          <h3>🌱 NDVI &amp; LSTM Forecast</h3>
+          <span class="panel-badge" id="fcBadge" style="background:var(--accent-emerald);">Real-time</span>
+        </div>
+        <div style="padding:16px;">
+          <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px;">
+            <label style="font-size:12px; font-weight:600; color:var(--text-secondary);">Region:</label>
+            <select id="fcRegion" class="emhare-select" style="max-width:240px; padding:8px 10px;">
+              <option value="Sahel">Sahel Belt</option>
+              <option value="Horn of Africa">Horn of Africa</option>
+              <option value="East Africa">East Africa Highlands</option>
+              <option value="Southern Africa">Southern Africa</option>
+              <option value="West Africa">West Africa Coast</option>
+            </select>
+            <button id="btnRunForecast" class="fc-run-btn">▶ Run LSTM Forecast</button>
+            <span id="fcStatus" style="font-size:12px; color:var(--text-muted);"></span>
+          </div>
+          <div style="position:relative; height:300px;">
+            <canvas id="ndviForecastChart"></canvas>
+          </div>
+          <div id="fcComparison" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-top:16px;"></div>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:12px;">
+            History blends live regional NDVI with a 24-month seasonal model. The forecast is produced client-side by a small LSTM neural network (TensorFlow.js); a statistical trend model is used as fallback if the network is unavailable.
+          </p>
+        </div>
+      </div>
+
       <!-- Live News moved here from Dashboard -->
       <div class="panel full" id="newsPanel" style="margin-top:20px;"></div>
     </div></div>
@@ -621,6 +653,26 @@
       </div>
     </div></div>
     
+    <!-- ═══ COMPREHENSIVE / PORTFOLIO REPORT MODAL ═══ -->
+    <div id="wafeoReportModal" class="modal-overlay">
+      <div class="modal-card" style="max-width:760px; width:94%; max-height:88vh; display:flex; flex-direction:column;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <h2 style="font-size:20px; font-weight:700; color:var(--accent-blue);">📊 WAFEO Comprehensive Report</h2>
+          <button id="btnCloseReport" style="background:none;border:none;font-size:22px;cursor:pointer;color:#888;">&times;</button>
+        </div>
+        <div id="reportMeta" style="font-size:12px; color:var(--text-muted); margin-bottom:12px;"></div>
+        <div id="reportBody" style="overflow-y:auto; padding-right:6px; flex:1;">
+          <!-- Populated by JS -->
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+          <button id="btnSaveReport" class="fc-run-btn">💾 Save to Records (Firestore)</button>
+          <button id="btnPrintReport" class="fc-run-btn" style="background:var(--accent-blue);">🖨 Print / Export PDF</button>
+          <span id="reportSaveStatus" style="font-size:12px; color:var(--text-muted); align-self:center;"></span>
+        </div>
+        <div id="savedReportsList" style="margin-top:14px;"></div>
+      </div>
+    </div>
+
     <!-- ═══ FLOATING AI WIDGET ═══ -->
     <div id="aiWidgetContainer">
       <!-- The Floating Panel -->

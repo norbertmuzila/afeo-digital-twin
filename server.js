@@ -584,6 +584,90 @@ app.get('/api/admin/activity', auth, async (req, res) => {
   }
 });
 
+// ─── AI Assistant (secure Groq proxy — key stays server-side) ─
+app.post('/api/ai/chat', async (req, res) => {
+  const apiKey = process.env.GROQ_API_KEY;
+  const messages = Array.isArray(req.body && req.body.messages) ? req.body.messages : null;
+  if (!messages) return res.status(400).json({ error: 'messages array required' });
+
+  const systemPrompt = {
+    role: 'system',
+    content: 'You are the WAFEO Digital Twin AI Assistant. You help users interpret Earth Observation data: NDVI vegetation health, water resources, drought, soil and food-security signals across Africa and globally. Be concise, professional and clear. Prefer short paragraphs and bullet points. If asked something outside Earth observation/agriculture/water/food security, answer briefly and steer back to the platform.'
+  };
+  const finalMessages = messages.some(m => m && m.role === 'system') ? messages : [systemPrompt, ...messages];
+
+  if (!apiKey) {
+    return res.status(503).json({
+      error: 'AI not configured',
+      reply: 'The WAFEO AI assistant is not configured yet. An administrator needs to add a GROQ_API_KEY environment variable in the deployment settings (free tier available at console.groq.com).'
+    });
+  }
+
+  try {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+        messages: finalMessages.slice(-20),
+        temperature: 0.5,
+        max_tokens: 1024
+      })
+    });
+    if (!r.ok) {
+      const errText = await r.text();
+      console.error('[ai] Groq error:', r.status, errText.slice(0, 300));
+      return res.status(502).json({ error: 'AI provider error', reply: 'Sorry, the AI service returned an error. Please try again shortly.' });
+    }
+    const data = await r.json();
+    const reply = (data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || 'No response generated.';
+    res.json({ reply });
+  } catch (err) {
+    console.error('[ai] Request failed:', err.message);
+    res.status(502).json({ error: 'AI request failed', reply: 'Sorry, I could not reach the AI service right now.' });
+  }
+});
+
+// ─── Reports persistence (Firestore) ─────────────────────────
+app.post('/api/reports', auth, async (req, res) => {
+  const body = req.body || {};
+  const report = {
+    userId: req.user.id,
+    username: req.user.username,
+    title: body.title || 'WAFEO Comprehensive Report',
+    region: body.region || 'Global',
+    summary: body.summary || '',
+    sections: Array.isArray(body.sections) ? body.sections : [],
+    metrics: body.metrics || {},
+    createdAt: new Date().toISOString()
+  };
+  try {
+    if (db) {
+      const ref = await db.collection('reports').add(report);
+      return res.json({ saved: true, id: ref.id, report });
+    }
+    res.json({ saved: false, message: 'Firestore not available', report });
+  } catch (err) {
+    console.error('[reports] Save failed:', err.message);
+    res.status(500).json({ saved: false, error: 'Failed to save report' });
+  }
+});
+
+app.get('/api/reports', auth, async (req, res) => {
+  try {
+    if (db) {
+      const snap = await db.collection('reports').where('userId', '==', req.user.id).limit(50).get();
+      let reports = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      reports.sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+      return res.json({ reports, total: reports.length });
+    }
+    res.json({ reports: [], total: 0, message: 'Firestore not available' });
+  } catch (err) {
+    console.error('[reports] List failed:', err.message);
+    res.status(500).json({ error: 'Failed to list reports' });
+  }
+});
+
 app.get('/api/seed', async (req, res) => {
   if (req.query.secret !== 'wafeo-admin-seed-2024') return res.status(403).json({ error: 'Unauthorized' });
   const path = require('path');

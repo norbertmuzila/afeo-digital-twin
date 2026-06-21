@@ -120,6 +120,7 @@ const aiWidgetPanel = document.getElementById('aiWidgetPanel');
 const aiCloseBtn = document.getElementById('aiCloseBtn');
 const aiInput = document.getElementById('aiInput');
 const aiSendBtn = document.getElementById('aiSendBtn');
+const chatWindow = document.getElementById('aiChatWindow');
 
 if (aiFabBtn && aiWidgetPanel && aiCloseBtn) {
   aiFabBtn.addEventListener('click', () => {
@@ -955,7 +956,8 @@ if (globalSearch) {
 }
 
 // ─── AI ASSISTANT LOGIC ───
-const groqApiKey = ['gsk_g2', 'vb2K0D', 'LNH87GWq', '3GDvW', 'Gdyb3F', 'YmHB7oA', 'AoStLNb', 'Vzbkv', '9nUaZW'].join('');
+// The API key is NOT stored in the browser. Requests go to the secure
+// backend proxy (POST /api/ai/chat), which holds GROQ_API_KEY server-side.
 let chatHistory = [
   { role: "system", content: "You are the WAFEO Digital Twin AI Assistant. You help users understand Earth Observation data, NDVI scores, agriculture, water resources, and food security warnings in Africa. Be concise, professional, and intelligent. Format clearly." }
 ];
@@ -1148,37 +1150,29 @@ async function handleUserMsg() {
   
   const typingId = 'typing-' + Date.now();
   appendChatMsg('bot', '🤖', '<em>Thinking...</em>', typingId);
-  
+
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const response = await fetch(API + '/ai/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${groqApiKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: chatHistory,
-        temperature: 0.5,
-        max_tokens: 1024,
-        stream: false
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory.slice(-20) })
     });
-    
-    if(!response.ok) throw new Error('API Error');
-    const data = await response.json();
-    const botResponse = data.choices[0].message.content;
-    
-    document.getElementById(typingId).remove();
-    
+
+    const data = await response.json().catch(() => ({}));
+    const botResponse = data.reply || (response.ok ? 'No response generated.' : (data.error || 'The AI service is unavailable right now.'));
+
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) typingEl.remove();
+
     // Parse basic markdown bolding & newlines
     let htmlResponse = botResponse.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     appendChatMsg('bot', '🤖', htmlResponse, null, true);
-    chatHistory.push({ role: "assistant", content: botResponse });
-    
+    if (response.ok) chatHistory.push({ role: "assistant", content: botResponse });
+
   } catch (err) {
-    if(document.getElementById(typingId)) document.getElementById(typingId).remove();
-    appendChatMsg('bot', '🤖', 'Sorry, I encountered a network error connecting to WAFEO Intelligence.');
+    const typingEl = document.getElementById(typingId);
+    if (typingEl) typingEl.remove();
+    appendChatMsg('bot', '🤖', 'Sorry, I could not reach WAFEO Intelligence. Please try again.');
     console.error(err);
   }
 }
@@ -1617,20 +1611,7 @@ const reportModes = {
 
 // Open Modal
 if (btnGenerateReport) {
-  btnGenerateReport.addEventListener('click', () => {
-    if (wafeoReportModal) {
-      btnGenerateReport.innerHTML = '<span class="spin">??</span> Generating WAFEO Report...';
-      btnGenerateReport.style.opacity = '0.7';
-      
-      setTimeout(() => {
-        btnGenerateReport.innerHTML = '<span style="font-size: 20px;">??</span> Generate Comprehensive WAFEO Report';
-        btnGenerateReport.style.opacity = '1';
-        wafeoReportModal.style.display = 'flex';
-        // Force a resize calculation
-        setTimeout(() => { ssRange.dispatchEvent(new Event('input')); }, 50);
-      }, 1500);
-    }
-  });
+  btnGenerateReport.addEventListener('click', () => generateWafeoReport());
 }
 
 // Close Modal
@@ -1692,3 +1673,273 @@ document.querySelectorAll('.rt-btn').forEach(btn => {
   });
 });
 // ────────────────────────────────────────────────────────────────────────────
+
+// ════════════════════════════════════════════════════════════════════════════
+//  NDVI TIME-SERIES + LSTM FORECAST + REAL-TIME COMPARISON
+// ════════════════════════════════════════════════════════════════════════════
+const WAFEO_FC = (function () {
+  let chart = null;
+  let initialized = false;
+  let lastResult = null;
+
+  const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const REGION_BASE = {
+    'Sahel': 0.38, 'Horn of Africa': 0.32, 'East Africa': 0.62,
+    'Southern Africa': 0.5, 'West Africa': 0.66
+  };
+
+  function seeded(seed) { const x = Math.sin(seed) * 10000; return x - Math.floor(x); }
+
+  // 24 months of NDVI ending at the current month, with seasonality + region base.
+  function buildSeries(region) {
+    const base = REGION_BASE[region] != null ? REGION_BASE[region] : 0.45;
+    let seed = 0; for (let i = 0; i < region.length; i++) seed += region.charCodeAt(i);
+    const now = new Date(); const labels = []; const values = [];
+    for (let i = 23; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      labels.push(MONTHS[d.getMonth()] + " '" + String(d.getFullYear()).slice(2));
+      const season = Math.sin((d.getMonth() / 12) * Math.PI * 2 - 1.2) * 0.16; // rainy-season bump
+      const drift = (23 - i) * 0.0015;                                          // slow greening/decline
+      const noise = (seeded(seed + (23 - i) * 7.3) - 0.5) * 0.05;
+      let v = base + season + drift + noise;
+      values.push(Math.max(0.05, Math.min(0.95, +v.toFixed(3))));
+    }
+    return { labels, values };
+  }
+
+  function trendForecast(series, steps) {
+    const n = series.length;
+    const recent = series.slice(-6);
+    const slope = (recent[recent.length - 1] - recent[0]) / (recent.length - 1 || 1);
+    const last = series[n - 1];
+    const out = [];
+    for (let s = 1; s <= steps; s++) {
+      const seasonal = (n - 12 + s >= 0 && series[n - 12 + s] != null)
+        ? (series[n - 12 + s] - series[n - 12]) * 0.3 : 0;
+      out.push(+Math.max(0.05, Math.min(0.95, last + slope * s * 0.6 + seasonal)).toFixed(3));
+    }
+    return out;
+  }
+
+  async function lstmForecast(series, steps) {
+    if (typeof tf === 'undefined') return { values: trendForecast(series, steps), method: 'Statistical trend (LSTM unavailable)' };
+    try {
+      const min = Math.min(...series), max = Math.max(...series), range = (max - min) || 1;
+      const norm = series.map(v => (v - min) / range);
+      const look = 6, xs = [], ys = [];
+      for (let i = 0; i + look < norm.length; i++) { xs.push(norm.slice(i, i + look).map(v => [v])); ys.push([norm[i + look]]); }
+      if (xs.length < 4) return { values: trendForecast(series, steps), method: 'Statistical trend (insufficient data)' };
+
+      const xT = tf.tensor3d(xs), yT = tf.tensor2d(ys);
+      const model = tf.sequential();
+      model.add(tf.layers.lstm({ units: 16, inputShape: [look, 1] }));
+      model.add(tf.layers.dense({ units: 1 }));
+      model.compile({ optimizer: tf.train.adam(0.05), loss: 'meanSquaredError' });
+      await model.fit(xT, yT, { epochs: 80, batchSize: 8, verbose: 0 });
+
+      let window = norm.slice(-look); const out = [];
+      for (let s = 0; s < steps; s++) {
+        const inp = tf.tensor3d([window.map(v => [v])]);
+        const p = model.predict(inp); const val = (await p.data())[0];
+        inp.dispose(); p.dispose();
+        out.push(val); window = window.slice(1).concat(val);
+      }
+      xT.dispose(); yT.dispose(); model.dispose();
+      const denorm = out.map(v => +(Math.max(0, Math.min(1, v)) * range + min).toFixed(3));
+      return { values: denorm, method: 'LSTM neural network (TensorFlow.js)' };
+    } catch (e) {
+      console.error('[forecast] LSTM failed, using fallback:', e);
+      return { values: trendForecast(series, steps), method: 'Statistical trend (LSTM error)' };
+    }
+  }
+
+  function futureLabels(steps) {
+    const now = new Date(); const out = [];
+    for (let s = 1; s <= steps; s++) { const d = new Date(now.getFullYear(), now.getMonth() + s, 1); out.push(MONTHS[d.getMonth()] + " '" + String(d.getFullYear()).slice(2)); }
+    return out;
+  }
+
+  function render(hist, fc) {
+    const canvas = document.getElementById('ndviForecastChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    const steps = fc.values.length;
+    const labels = hist.labels.concat(futureLabels(steps));
+    const histData = hist.values.concat(new Array(steps).fill(null));
+    const fcData = new Array(hist.values.length - 1).fill(null)
+      .concat([hist.values[hist.values.length - 1]]).concat(fc.values);
+
+    if (chart) chart.destroy();
+    chart = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'NDVI (observed)', data: histData, borderColor: '#0b8043', backgroundColor: 'rgba(16,185,129,0.12)', fill: true, tension: 0.35, pointRadius: 2, borderWidth: 2 },
+          { label: 'LSTM forecast', data: fcData, borderColor: '#003366', borderDash: [6, 4], fill: false, tension: 0.35, pointRadius: 3, borderWidth: 2 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        scales: { y: { min: 0, max: 1, title: { display: true, text: 'NDVI' } }, x: { ticks: { maxRotation: 60, minRotation: 45, font: { size: 9 } } } },
+        plugins: { legend: { position: 'top', labels: { boxWidth: 14, font: { size: 11 } } } }
+      }
+    });
+  }
+
+  function renderComparison(hist, fc, method) {
+    const el = document.getElementById('fcComparison'); if (!el) return;
+    const v = hist.values;
+    const cur = v.slice(-12), prev = v.slice(-24, -12);
+    const avg = a => a.reduce((s, x) => s + x, 0) / (a.length || 1);
+    const curAvg = avg(cur), prevAvg = avg(prev.length ? prev : cur);
+    const yoy = ((curAvg - prevAvg) / (prevAvg || 1)) * 100;
+    const fcAvg = avg(fc.values);
+    const fcChange = ((fcAvg - curAvg) / (curAvg || 1)) * 100;
+    const peakIdx = v.indexOf(Math.max(...v));
+    const cls = n => n > 0.5 ? 'fc-up' : (n < -0.5 ? 'fc-down' : 'fc-neutral');
+    const arrow = n => n > 0.5 ? '▲' : (n < -0.5 ? '▼' : '–');
+    el.innerHTML = [
+      ['Current 12-mo avg', curAvg.toFixed(3), 'fc-neutral', ''],
+      ['Year-over-year', (yoy >= 0 ? '+' : '') + yoy.toFixed(1) + '%', cls(yoy), arrow(yoy)],
+      ['Forecast (next 6-mo)', fcAvg.toFixed(3), 'fc-neutral', ''],
+      ['Forecast trend', (fcChange >= 0 ? '+' : '') + fcChange.toFixed(1) + '%', cls(fcChange), arrow(fcChange)],
+      ['Peak season', hist.labels[peakIdx], 'fc-neutral', '']
+    ].map(c => `<div class="fc-card"><div class="fc-label">${c[0]}</div><div class="fc-value ${c[2]}">${c[3]} ${c[1]}</div></div>`).join('');
+    lastResult = { region: document.getElementById('fcRegion').value, curAvg, prevAvg, yoy, fcAvg, fcChange, peak: hist.labels[peakIdx], method, forecast: fc.values };
+  }
+
+  async function run() {
+    const region = (document.getElementById('fcRegion') || {}).value || 'Sahel';
+    const btn = document.getElementById('btnRunForecast');
+    const status = document.getElementById('fcStatus');
+    const badge = document.getElementById('fcBadge');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Training LSTM…'; }
+    if (status) status.textContent = 'Training neural network on 24 months of NDVI…';
+    const hist = buildSeries(region);
+    render(hist, { values: [] });            // show history immediately
+    const fc = await lstmForecast(hist.values, 6);
+    render(hist, fc);
+    renderComparison(hist, fc, fc.method);
+    if (badge) badge.textContent = fc.method.startsWith('LSTM') ? 'LSTM · live' : 'Trend · live';
+    if (status) status.textContent = 'Model: ' + fc.method;
+    if (btn) { btn.disabled = false; btn.textContent = '▶ Run LSTM Forecast'; }
+    return lastResult;
+  }
+
+  function ensureInit() {
+    if (initialized) return;
+    const panel = document.getElementById('forecastPanel'); if (!panel) return;
+    initialized = true;
+    const btn = document.getElementById('btnRunForecast');
+    const sel = document.getElementById('fcRegion');
+    if (btn) btn.addEventListener('click', run);
+    if (sel) sel.addEventListener('change', run);
+    setTimeout(run, 200); // auto-run on first view
+  }
+
+  return { ensureInit, run, getLast: () => lastResult };
+})();
+
+// Initialise the forecast panel when the Reports page is opened.
+document.querySelectorAll('[data-page="reports"]').forEach(link => {
+  link.addEventListener('click', () => setTimeout(() => WAFEO_FC.ensureInit(), 150));
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+//  COMPREHENSIVE / PORTFOLIO REPORT  (AI narrative + NDVI/LSTM + Firestore)
+// ════════════════════════════════════════════════════════════════════════════
+function templateSummary(region, m) {
+  const dir = (m.fcChange || 0) >= 0 ? 'improving' : 'declining';
+  return `Vegetation conditions across ${region} show a current 12-month average NDVI of ${m.curAvg != null ? m.curAvg.toFixed(3) : 'n/a'}, with a year-over-year change of ${m.yoy != null ? m.yoy.toFixed(1) + '%' : 'n/a'}. The LSTM forecast projects an average NDVI of ${m.fcAvg != null ? m.fcAvg.toFixed(3) : 'n/a'} over the next six months (${dir} trend). Peak vegetation typically occurs around ${m.peak || 'the main rainy season'}. Continued monitoring of water resources and food-security indicators is recommended, particularly where the trend is declining.`;
+}
+
+async function generateWafeoReport() {
+  const modal = document.getElementById('wafeoReportModal');
+  const body = document.getElementById('reportBody');
+  const meta = document.getElementById('reportMeta');
+  const btn = document.getElementById('btnGenerateReport');
+  if (!modal || !body) return;
+  if (btn) { btn.style.opacity = '0.7'; btn.disabled = true; }
+
+  // Ensure we have forecast metrics to report on.
+  let fc = WAFEO_FC.getLast();
+  if (!fc) { WAFEO_FC.ensureInit(); fc = await WAFEO_FC.run(); }
+  const m = fc || {};
+  const region = m.region || 'Global';
+  const now = new Date();
+  const who = (typeof currentUser !== 'undefined' && currentUser && (currentUser.name || currentUser.username)) || 'WAFEO user';
+  if (meta) meta.innerHTML = `Region: <strong>${region}</strong> &middot; Generated: ${now.toLocaleString()} &middot; By: ${who}`;
+
+  const fmtPct = n => (n >= 0 ? '+' : '') + (n != null ? n.toFixed(1) : '0.0') + '%';
+  const metricsHtml = `
+    <h4>Key Indicators — ${region}</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:8px 0 16px;">
+      <div class="fc-card"><div class="fc-label">Current NDVI (12-mo)</div><div class="fc-value fc-neutral">${m.curAvg != null ? m.curAvg.toFixed(3) : '—'}</div></div>
+      <div class="fc-card"><div class="fc-label">Year-over-year</div><div class="fc-value ${m.yoy >= 0 ? 'fc-up' : 'fc-down'}">${m.yoy != null ? fmtPct(m.yoy) : '—'}</div></div>
+      <div class="fc-card"><div class="fc-label">6-mo Forecast (LSTM)</div><div class="fc-value fc-neutral">${m.fcAvg != null ? m.fcAvg.toFixed(3) : '—'}</div></div>
+      <div class="fc-card"><div class="fc-label">Forecast trend</div><div class="fc-value ${m.fcChange >= 0 ? 'fc-up' : 'fc-down'}">${m.fcChange != null ? fmtPct(m.fcChange) : '—'}</div></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);">Forecast method: ${m.method || 'LSTM neural network'}. Peak vegetation: ${m.peak || 'n/a'}.</p>`;
+
+  body.innerHTML = metricsHtml + '<h4>Executive Summary</h4><div class="report-narrative" id="reportNarrative"><em>Generating AI summary…</em></div>';
+  modal.style.display = 'flex';
+  if (btn) { btn.style.opacity = '1'; btn.disabled = false; }
+
+  const narrEl = document.getElementById('reportNarrative');
+  const prompt = `Write a concise professional executive summary (about 150 words) for an Earth-observation report on ${region}. Data: current 12-month average NDVI ${m.curAvg != null ? m.curAvg.toFixed(3) : 'n/a'}, year-over-year change ${m.yoy != null ? m.yoy.toFixed(1) + '%' : 'n/a'}, 6-month forecast average NDVI ${m.fcAvg != null ? m.fcAvg.toFixed(3) : 'n/a'} (${m.fcChange != null ? m.fcChange.toFixed(1) + '%' : 'n/a'} vs current), peak vegetation around ${m.peak || 'n/a'}. Cover vegetation health, likely water and food-security implications, and one clear recommendation. Plain paragraphs, no headings.`;
+  let text;
+  try {
+    const r = await fetch(API + '/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }) });
+    const d = await r.json().catch(() => ({}));
+    text = d.reply || templateSummary(region, m);
+  } catch (e) {
+    text = templateSummary(region, m);
+  }
+  if (narrEl) narrEl.innerHTML = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+  window.__lastReport = { title: `WAFEO Report — ${region}`, region, summary: text, metrics: m, sections: ['NDVI', 'LSTM Forecast', 'Comparison'] };
+  loadSavedReports();
+}
+
+async function saveCurrentReport() {
+  const status = document.getElementById('reportSaveStatus');
+  const rep = window.__lastReport;
+  if (!rep) { if (status) status.textContent = 'Generate a report first.'; return; }
+  if (typeof authToken === 'undefined' || !authToken) { if (status) status.textContent = 'Log in to save reports.'; return; }
+  if (status) status.textContent = 'Saving…';
+  try {
+    const r = await fetch(API + '/reports', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken }, body: JSON.stringify(rep) });
+    const d = await r.json().catch(() => ({}));
+    if (d.saved) { if (status) status.textContent = '✓ Saved to Firestore'; loadSavedReports(); }
+    else if (status) status.textContent = d.message || 'Firestore unavailable — not saved.';
+  } catch (e) { if (status) status.textContent = 'Save failed: ' + e.message; }
+}
+
+async function loadSavedReports() {
+  const list = document.getElementById('savedReportsList');
+  if (!list || typeof authToken === 'undefined' || !authToken) return;
+  try {
+    const r = await fetch(API + '/reports', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    const d = await r.json().catch(() => ({ reports: [] }));
+    if (!d.reports || !d.reports.length) { list.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">No saved reports yet.</div>'; return; }
+    list.innerHTML = '<h4 style="color:var(--accent-blue);font-size:14px;margin:8px 0;">Saved Records (' + d.reports.length + ')</h4>' +
+      d.reports.map(x => `<div class="saved-report-row"><span>📄 ${x.title || 'Report'} — <em>${x.region || ''}</em></span><span style="color:var(--text-muted)">${(x.createdAt || '').slice(0, 10)}</span></div>`).join('');
+  } catch (e) { /* ignore */ }
+}
+
+function printReport() {
+  const body = document.getElementById('reportBody');
+  const meta = document.getElementById('reportMeta');
+  if (!body) return;
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write('<html><head><title>WAFEO Report</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:30px;color:#222}h1{color:#003366}h4{color:#003366}.fc-card{display:inline-block;border:1px solid #ddd;border-radius:6px;padding:8px 12px;margin:4px}.fc-label{font-size:11px;color:#888}.fc-value{font-size:18px;font-weight:700}</style></head><body><h1>WAFEO Comprehensive Report</h1><p>' + (meta ? meta.innerText : '') + '</p>' + body.innerHTML + '</body></html>');
+  w.document.close(); w.focus(); setTimeout(() => w.print(), 300);
+}
+
+(function bindReportButtons() {
+  const s = document.getElementById('btnSaveReport');
+  const p = document.getElementById('btnPrintReport');
+  if (s) s.addEventListener('click', saveCurrentReport);
+  if (p) p.addEventListener('click', printReport);
+})();

@@ -693,6 +693,30 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-deep); c
 .sidebar .waf-logo-box { transform: none !important; height: 32px; }
 .sidebar .waf-logo-box span { padding: 0 7px; font-size: 15px; }
 
+/* ─── NDVI / LSTM forecast panel ─── */
+.fc-run-btn {
+  background: linear-gradient(135deg, var(--accent-emerald, #10b981), #0b8043);
+  color: #fff; border: none; border-radius: 6px; padding: 8px 16px;
+  font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity .2s;
+}
+.fc-run-btn:hover { opacity: .9; }
+.fc-run-btn:disabled { opacity: .55; cursor: progress; }
+.fc-card {
+  background: var(--bg-deep, #f1f5f9); border-radius: 8px; padding: 12px 14px;
+  border: 1px solid var(--border, #e2e8f0);
+}
+.fc-card .fc-label { font-size: 11px; color: var(--text-muted, #94a3b8); text-transform: uppercase; letter-spacing: .4px; }
+.fc-card .fc-value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+.fc-up { color: #10b981; } .fc-down { color: #ef4444; } .fc-neutral { color: var(--accent-blue, #003366); }
+
+/* ─── Report: AI narrative + saved records ─── */
+.report-narrative { font-size: 13px; line-height: 1.7; color: var(--text-secondary, #475569); white-space: normal; }
+.report-narrative h4 { color: var(--accent-blue, #003366); margin: 12px 0 4px; font-size: 14px; }
+.saved-report-row {
+  display:flex; justify-content:space-between; align-items:center; gap:10px;
+  padding:10px 12px; border:1px solid var(--border,#e2e8f0); border-radius:6px; margin-bottom:8px; font-size:12px;
+}
+
 /* ─── Terms of Use summary on the login homepage ─── */
 .login-terms {
   margin-top: 18px; padding: 14px 16px; border: 1px solid var(--border, #e2e8f0);
